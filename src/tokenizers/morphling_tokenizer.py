@@ -1,3 +1,5 @@
+import re
+
 from nltk import word_tokenize
 
 from tglstemmer import stemmer
@@ -21,16 +23,20 @@ class MorphlingTokenizer:
         self.REPEAT_TAG_LEN = len(self.REPEAT_TAG)
         self.CAPITAL_TAG_LEN = len(self.CAPITAL_TAG)
 
-        self.PUNCTS_SPACE_AFTER = set(".,?!:;)']\"")
-        self.PUNCTS_SPACE_BEFORE = set("('[")
+        self.PUNCTS_SPACE_AFTER = set(".,?!:;)]\"'")
+        self.PUNCTS_SPACE_BEFORE = set("([")
         self.PUNCTUATION_CHARS = self.PUNCTS_SPACE_AFTER | self.PUNCTS_SPACE_BEFORE
 
         self.VOWEL_CHARS = set("aeiou")
 
+        self.VALID_CONTRACTIONS = set(["'y", "'t"])
+
+        self.EOS_TOKEN = "<s>"
+        self.BOS_TOKEN = "</s>"
+        self.UNK_TOKEN = "<unk>"
+
     def _tokenize_word(self, word: str) -> list:
         # TODO: normalize single quotes to double quotes if context is quoting and not contractions
-        if word == r"``" or word == r"''":
-            return ['"']
 
         # TODO: capitalization check, not robust but fast
         is_capital = word[0].isupper() and (len(word) == 1 or word[-1].islower())
@@ -69,7 +75,8 @@ class MorphlingTokenizer:
         return tokens
 
     def _split_to_words(self, s: str) -> list:
-        words = word_tokenize(s)
+        # words = word_tokenize(s)
+        words = re.findall(r"[\w']+(?:-\w+)*|[^\w\s]|\n", s, re.UNICODE)
         return words
 
     def tokenize(self, s: str) -> list:
@@ -183,17 +190,17 @@ class MorphlingTokenizer:
 
         concat = []
         no_space_next = False
-        opened_quotes = False
+        opened_double_quotes = False
         for word in words:
             if len(word) == 1 and word in self.PUNCTUATION_CHARS:
                 if word == '"':
-                    if opened_quotes:
+                    if opened_double_quotes:
                         concat.append(word)
                     else:
                         concat.append(" " + word)
                         no_space_next = True
 
-                    opened_quotes = not opened_quotes
+                    opened_double_quotes = not opened_double_quotes
 
                 elif word in self.PUNCTS_SPACE_AFTER:
                     concat.append(word)
