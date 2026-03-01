@@ -13,8 +13,13 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         unk_token="<unk>",
         bos_token="<s>",
         eos_token="</s>",
+        add_bos_token: bool = True,
+        add_eos_token: bool = False,
         **kwargs,
     ):
+        self.add_bos_token = add_bos_token
+        self.add_eos_token = add_eos_token
+
         module_root_dir = Path(__file__).parent.parent
 
         self.PREFIXES_FILE = module_root_dir / "resources" / "affixes" / "prefixes.txt"
@@ -143,7 +148,10 @@ class MorphlingTokenizer(PreTrainedTokenizer):
             word_tokens = self._tokenize_word(word)
             tokens += word_tokens
 
-        return tokens
+        bos_token = [self.bos_token] if self.add_bos_token else []
+        eos_token = [self.eos_token] if self.add_eos_token else []
+
+        return bos_token + tokens + eos_token
 
     def convert_tokens_to_string(self, tokens: list[str]) -> str:
         word_token_buf = []
