@@ -145,6 +145,54 @@ class MorphlingTokenizer(PreTrainedTokenizer):
 
         return tokens
 
+    def convert_tokens_to_string(self, tokens: list[str]) -> str:
+        word_token_buf = []
+        words = []
+
+        # just a trick coz lazy to write if statements
+        tokens.append("tapos")
+
+        for token in tokens:
+            if not self._is_special_token(token):
+                word = self._detokenize_word(word_token_buf)
+                if word:
+                    words.append(word)
+                word_token_buf.clear()
+
+            word_token_buf.append(token)
+
+        concat = []
+        no_space_next = False
+        opened_double_quotes = False
+        for word in words:
+            if len(word) == 1 and word in self.PUNCTUATION_CHARS:
+                if word == '"':
+                    if opened_double_quotes:
+                        concat.append(word)
+                    else:
+                        concat.append(" " + word)
+                        no_space_next = True
+
+                    opened_double_quotes = not opened_double_quotes
+
+                elif word in self.PUNCTS_SPACE_AFTER:
+                    concat.append(word)
+                elif word in self.PUNCTS_SPACE_BEFORE:
+                    concat.append(" " + word)
+                    no_space_next = True
+                elif word in self.PUNCTS_NO_SPACE:
+                    concat.append(word)
+                    no_space_next = True
+
+            else:
+                if no_space_next:
+                    concat.append(word)
+                    no_space_next = False
+                else:
+                    concat.append(" " + word)
+
+        return "".join(concat).strip()
+
     def _convert_token_to_id(self, token):
         return self.vocab.get(token, self.vocab.get(self.unk_token))
 
@@ -292,51 +340,3 @@ class MorphlingTokenizer(PreTrainedTokenizer):
             return False
 
         return token[-1] == self.SPECIAL_TOKEN_MARKER
-
-    def detokenize(self, tokens: list) -> str:
-        word_token_buf = []
-        words = []
-
-        # just a trick coz lazy to write if statements
-        tokens.append("tapos")
-
-        for token in tokens:
-            if not self._is_special_token(token):
-                word = self._detokenize_word(word_token_buf)
-                if word:
-                    words.append(word)
-                word_token_buf.clear()
-
-            word_token_buf.append(token)
-
-        concat = []
-        no_space_next = False
-        opened_double_quotes = False
-        for word in words:
-            if len(word) == 1 and word in self.PUNCTUATION_CHARS:
-                if word == '"':
-                    if opened_double_quotes:
-                        concat.append(word)
-                    else:
-                        concat.append(" " + word)
-                        no_space_next = True
-
-                    opened_double_quotes = not opened_double_quotes
-
-                elif word in self.PUNCTS_SPACE_AFTER:
-                    concat.append(word)
-                elif word in self.PUNCTS_SPACE_BEFORE:
-                    concat.append(" " + word)
-                    no_space_next = True
-                elif word in self.PUNCTS_NO_SPACE:
-                    concat.append(word)
-                    no_space_next = True
-
-            else:
-                if no_space_next:
-                    concat.append(word)
-                    no_space_next = False
-                else:
-                    concat.append(" " + word)
-
-        return "".join(concat).strip()
