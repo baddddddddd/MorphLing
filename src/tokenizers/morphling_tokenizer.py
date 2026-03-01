@@ -110,6 +110,8 @@ class MorphlingTokenizer(PreTrainedTokenizer):
             **kwargs,
         )
 
+        self.pad_token = self.unk_token
+
         self.SEQUENCE_TOKENS = set(
             [
                 self.bos_token,

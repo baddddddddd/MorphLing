@@ -24,6 +24,8 @@ class SentencePieceTokenizer(LlamaTokenizerFast):
             **kwargs,
         )
 
+        self.pad_token = self.unk_token
+
     @staticmethod
     def train(
         corpus_file: str,
