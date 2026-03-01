@@ -20,6 +20,9 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         self.PREFIXES_FILE = module_root_dir / "resources" / "affixes" / "prefixes.txt"
         self.SUFFIXES_FILE = module_root_dir / "resources" / "affixes" / "suffixes.txt"
         self.INFIXES_FILE = module_root_dir / "resources" / "affixes" / "infixes.txt"
+        self.WORDLIST_FILE = module_root_dir / "resources" / "tgl_wordlist.txt"
+
+        self._load_wordlist()
 
         # for O(1) identification if token is special
         self.SPECIAL_TOKEN_MARKER = "\u241f"
@@ -73,6 +76,15 @@ class MorphlingTokenizer(PreTrainedTokenizer):
                 self.unk_token,
             ]
         )
+
+    def _load_wordlist(self):
+        self.wordlist = set()
+        with open(self.WORDLIST_FILE, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                line = line.strip()
+                if line:
+                    self.wordlist.add(line)
 
     def _setup_vocab(
         self,
@@ -148,44 +160,45 @@ class MorphlingTokenizer(PreTrainedTokenizer):
 
     def _tokenize_word(self, word: str) -> list:
         if len(word) == 1:
-            if word.isupper():
-                return [word.lower(), self.CAPITAL_TAG]
-            else:
-                return [word]
+            return [word]
 
         # NOTE: capitalization check, not robust but fast
-        is_capital = word[0].isupper() and (len(word) == 1 or word[-1].islower())
+        is_capital = word[0].isupper() and word[-1].islower()
 
         stem = stemmer.get_stem(word)
         root = str(stem)
-
-        # TODO: tokens if root should be processed by BPE first
-        tokens = [root]
-
-        if stem.dup:
-            tokens.append(self.REPEAT_TAG)
-
-        if stem.rep:
-            tokens.append(self.REDUP_TAG)
-
-        if stem.inf:
-            tokens.append(stem.inf + self.INFIX_TAG)
-
-        if stem.pre:
-            tokens.append(stem.pre + self.PREFIX_TAG)
-
-        # phoneme change, assimilation, vowel loss, and metathesis doesn't change meaning so its ok for now
-        if stem.suf:
-            tokens.append(stem.suf + self.SUFFIX_TAG)
-
-        if stem.contraction:
-            tokens.append(stem.contraction + self.SUFFIX_TAG)
-
-        if is_capital:
-            tokens.append(self.CAPITAL_TAG)
-
         # print(stem.__dict__)
 
+        special_tokens = []
+        if root in self.wordlist:
+            if stem.dup:
+                special_tokens.append(self.REPEAT_TAG)
+
+            if stem.rep:
+                special_tokens.append(self.REDUP_TAG)
+
+            if stem.inf:
+                special_tokens.append(stem.inf + self.INFIX_TAG)
+
+            if stem.pre:
+                special_tokens.append(stem.pre + self.PREFIX_TAG)
+
+            # NOTE: phoneme change, assimilation, vowel loss, and metathesis doesn't change meaning so its ok for now
+            if stem.suf:
+                special_tokens.append(stem.suf + self.SUFFIX_TAG)
+
+            if stem.contraction:
+                special_tokens.append(stem.contraction + self.SUFFIX_TAG)
+
+            if is_capital:
+                special_tokens.append(self.CAPITAL_TAG)
+        else:
+            # either a proper noun or non-tagalog word
+            root = word
+
+        # TODO: perform SentencePiece BPE on root word
+        bpe_tokens = [root]
+        tokens = bpe_tokens + special_tokens
         return tokens
 
     def _split_to_words(self, s: str) -> list:
