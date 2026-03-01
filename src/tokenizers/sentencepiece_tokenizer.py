@@ -50,7 +50,7 @@ class SentencePieceTokenizer(LlamaTokenizerFast):
             vocab_size=vocab_size,
             min_frequency=min_frequency,
             show_progress=True,
-            special_tokens=["<unk>", "<s>", "</s>"],
+            special_tokens=[unk_token, bos_token, eos_token],
         )
 
         tokenizer.save(output_file)
