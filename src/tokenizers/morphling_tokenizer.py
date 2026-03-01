@@ -5,10 +5,13 @@ from pathlib import Path
 from tglstemmer import stemmer
 from transformers.tokenization_python import PreTrainedTokenizer
 
+from .sentencepiece_tokenizer import SentencePieceTokenizer
+
 
 class MorphlingTokenizer(PreTrainedTokenizer):
     def __init__(
         self,
+        bpe_tokenizer_file: str,
         vocab: str | dict | list | None = None,
         unk_token="<unk>",
         bos_token="<s>",
@@ -19,6 +22,15 @@ class MorphlingTokenizer(PreTrainedTokenizer):
     ):
         self.add_bos_token = add_bos_token
         self.add_eos_token = add_eos_token
+
+        self.bpe_tokenizer = SentencePieceTokenizer(
+            tokenizer_file=bpe_tokenizer_file,
+            unk_token=str(unk_token),
+            bos_token=str(bos_token),
+            eos_token=str(eos_token),
+            add_bos_token=False,
+            add_eos_token=False,
+        )
 
         module_root_dir = Path(__file__).parent.parent
 
@@ -31,6 +43,7 @@ class MorphlingTokenizer(PreTrainedTokenizer):
 
         # for O(1) identification if token is special
         self.SPECIAL_TOKEN_MARKER = "\u241f"
+        self.SENTENCEPIECE_SPACE = "▁"
 
         self.PREFIX_TAG = "##PREFIX" + self.SPECIAL_TOKEN_MARKER
         self.SUFFIX_TAG = "##SUFFIX" + self.SPECIAL_TOKEN_MARKER
@@ -97,15 +110,7 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         bos_token,
         eos_token,
     ):
-        # TODO: load BPE vocab file first before adding the special tokens
-        # TODO: maybe have the BPE provided these tokens too
-
-        # sequence tokens
-        self.vocab = {
-            unk_token: 0,
-            bos_token: 1,
-            eos_token: 2,
-        }
+        self.vocab = dict(self.bpe_tokenizer.get_vocab())
 
         # prefixes
         with open(self.PREFIXES_FILE, "r") as f:
@@ -158,10 +163,11 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         words = []
 
         # just a trick coz lazy to write if statements
-        tokens.append("tapos")
+        tokens.append(self.SENTENCEPIECE_SPACE)
 
         for token in tokens:
-            if not self._is_special_token(token):
+            # if not self._is_special_token(token):
+            if self._is_word_boundary(token):
                 word = self._detokenize_word(word_token_buf)
                 if word:
                     words.append(word)
@@ -253,7 +259,7 @@ class MorphlingTokenizer(PreTrainedTokenizer):
             root = word
 
         # TODO: perform SentencePiece BPE on root word
-        bpe_tokens = [root]
+        bpe_tokens = self.bpe_tokenizer.tokenize(root)
         tokens = bpe_tokens + special_tokens
         return tokens
 
@@ -310,13 +316,25 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         # TODO: SORT SPECIAL TOKENS FIRST THEN RECONSTRUCT SEQUENTIALLY
         # full redup -> partial redup -> infix -> suffix -> prefix
 
-        stem = word_tokens[0]
+        # recover original root word fragmented by BPE
+        root_tokens = []
+        i = 0
+        while i < len(word_tokens):
+            token = word_tokens[i]
+            if self._is_special_token(token):
+                break
+
+            root_tokens.append(token)
+            i += 1
+
+        stem = "".join(root_tokens).lstrip(self.SENTENCEPIECE_SPACE)
 
         if stem in self.SEQUENCE_TOKENS:
             return stem
 
-        for i in range(1, len(word_tokens)):
+        while i < len(word_tokens):
             token = word_tokens[i]
+            i += 1
             if token.endswith(self.REPEAT_TAG):
                 stem = self._reconstruct_full_reduplication(stem)
                 continue
@@ -348,3 +366,12 @@ class MorphlingTokenizer(PreTrainedTokenizer):
             return False
 
         return token[-1] == self.SPECIAL_TOKEN_MARKER
+
+    def _is_word_boundary(self, token: str) -> bool:
+        if not token or self._is_special_token(token):
+            return False
+
+        if token in self.PUNCTUATION_CHARS:
+            return True
+
+        return token[0] == self.SENTENCEPIECE_SPACE
