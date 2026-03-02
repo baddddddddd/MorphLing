@@ -1,5 +1,7 @@
 
 defaults:
   - model: "llama-27m-morphling.yaml"
+  - tokenizer: "morphling-8k-test.yaml"
+  - dataset: "test-wikipedia-tl.yaml"
 
 tokenizer_file: "data/tokenizer/test.json"
