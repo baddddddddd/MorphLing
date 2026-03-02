@@ -1,0 +1,2 @@
+hidden_size: 768
+tokenizer: "SentencePieceTokenizer"

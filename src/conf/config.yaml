@@ -1,0 +1,5 @@
+
+defaults:
+  - model: "llama-27m-morphling.yaml"
+
+tokenizer_file: "data/tokenizer/test.json"
