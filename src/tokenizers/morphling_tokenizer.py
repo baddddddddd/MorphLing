@@ -434,14 +434,14 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         min_frequency: int = 2,
         **kwargs,
     ):
-        dataset = dataset.map(
-            lambda example: self._preprocess(example),
-            remove_columns=dataset.column_names,
+        dataset = dataset.filter(
+            lambda x: x["text"] != "",
             num_proc=os.cpu_count(),
         )
 
-        dataset = dataset.filter(
-            lambda x: x["text"] != "",
+        dataset = dataset.map(
+            lambda example: self._preprocess(example),
+            remove_columns=dataset.column_names,
             num_proc=os.cpu_count(),
         )
 
