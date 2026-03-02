@@ -4,3 +4,5 @@ tglstemmer
 old
 __pycache__
 main.py
+
+outputs/*
