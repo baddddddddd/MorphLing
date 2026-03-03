@@ -3,7 +3,7 @@ defaults:
   - model: "llama-27m.yaml"
   - tokenizer: "morphling-8k-test.yaml"
   - dataset: "test-wikipedia-tl.yaml"
-  - training: "debug.yaml"
+  - training: "debug-llama-27m-morphling.yaml"
 
 tokenizer_file: "data/tokenizer/test.json"
 resume_from_checkpoint: false
