@@ -58,10 +58,10 @@ sympy==1.14.0
 tabulate==0.9.0
 tglstemmer @ git+https://github.com/baddddddddd/tagalog-stemmer.git@7db9e0e7c6f80f1f77e42da56df9e97cb2110c3e
 tokenizers==0.22.2
-torch==2.10.0+cpu
-torchaudio==2.10.0+cpu
+torch==2.10.0
+torchaudio==2.10.0
 torchinfo==1.8.0
-torchvision==0.25.0+cpu
+torchvision==0.25.0
 tqdm==4.67.3
 transformers==5.2.0
 typer==0.24.1
