@@ -6,6 +6,8 @@ from datasets import load_dataset
 from huggingface_hub import login
 from omegaconf import DictConfig, OmegaConf
 from transformers.models.llama import LlamaConfig, LlamaForCausalLM
+from transformers.trainer import Trainer
+from transformers.training_args import TrainingArguments
 
 from ..tokenizers import MorphlingTokenizer, SentencePieceTokenizer
 
@@ -44,11 +46,6 @@ def main(cfg: DictConfig):
             "hf_token is required, add +hf_token=YOUR_TOKEN_HERE when running command"
         )
 
-    if "repo_id" not in cfg:
-        raise Exception(
-            "repo_id is required, add +repo_id=REPO_ID_HERE when running command"
-        )
-
     login(cfg.hf_token)
 
     TokenizerClass = tokenizer_registry[cfg.tokenizer.name]
@@ -65,6 +62,7 @@ def main(cfg: DictConfig):
         bos_token_id=tokenizer.bos_token_id,
         eos_token_id=tokenizer.eos_token_id,
         tie_word_embeddings=True,
+        max_position_embeddings=cfg.model.context_window,
     )
 
     print(f"  hidden_size: {config.hidden_size}")
@@ -84,6 +82,39 @@ def main(cfg: DictConfig):
         name=cfg.dataset.name,
         split=cfg.dataset.split,
     )
+
+    args = TrainingArguments(
+        output_dir=cfg.training.output_dir,
+        # training duration and batch size
+        per_device_train_batch_size=cfg.training.train_batch_size,
+        max_steps=cfg.training.max_steps,
+        # learning rate and scheduler (linear warmup + cosine decay)
+        learning_rate=cfg.training.learning_rate,
+        lr_scheduler_type="cosine",
+        warmup_steps=cfg.training.warmup_steps,
+        # optimizer (AdamW by default)
+        weight_decay=0.1,
+        adam_beta1=0.90,
+        adam_beta2=0.95,
+        adam_epsilon=1e-4,
+        # regularization and training stability
+        gradient_accumulation_steps=cfg.training.gradient_accumulation_steps,
+        max_grad_norm=1.0,
+        # NOTE: mixed precision training, use bf16 if possible
+        fp16=True,
+        # NOTE: gradient checkpointing, trade speed for memory
+        # gradient_checkpointing=True,
+        # logging and saving
+        logging_steps=cfg.training.logging_steps,
+        save_steps=cfg.training.save_steps,
+        push_to_hub=True,
+        hub_token=cfg.hf_token,
+        hub_private_repo=True,
+        hub_strategy="all_checkpoints",
+    )
+
+    print("\n=== Training Configuration ===")
+    print(OmegaConf.to_yaml(cfg.training))
 
 
 if __name__ == "__main__":
