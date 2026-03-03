@@ -2,6 +2,7 @@ import math
 
 import hydra
 import torchinfo
+from datasets import load_dataset
 from omegaconf import DictConfig, OmegaConf
 from transformers.models.llama import LlamaConfig, LlamaForCausalLM
 
@@ -37,8 +38,8 @@ def main(cfg: DictConfig):
     print("=== Active Configuration ===")
     print(OmegaConf.to_yaml(cfg))
 
-    TokenizerClass = tokenizer_registry[cfg.model.tokenizer]
-    tokenizer = TokenizerClass(cfg.tokenizer_file)
+    TokenizerClass = tokenizer_registry[cfg.tokenizer.name]
+    tokenizer = TokenizerClass(cfg.tokenizer.file)
 
     print("=== LLaMa Configuration ===")
     hidden_size = cfg.model.hidden_size
@@ -64,6 +65,12 @@ def main(cfg: DictConfig):
 
     print()
     torchinfo.summary(model)
+
+    dataset = load_dataset(
+        path=cfg.dataset.path,
+        name=cfg.dataset.name,
+        split=cfg.dataset.split,
+    )
 
 
 if __name__ == "__main__":
