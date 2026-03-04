@@ -10,6 +10,7 @@ from tokenizers.normalizers import Sequence, NFKC, StripAccents
 from transformers.tokenization_python import PreTrainedTokenizer
 
 from .sentencepiece_tokenizer import SentencePieceTokenizer
+from ..utils import LFUCache
 
 
 class MorphlingTokenizer(PreTrainedTokenizer):
@@ -130,7 +131,8 @@ class MorphlingTokenizer(PreTrainedTokenizer):
             ]
         )
 
-        self.memo = {}
+        self.stem_memo = {}
+        self.skip_stem_cache = LFUCache(capacity=100000)
 
     def _load_wordlist(self):
         self.wordlist = set()
@@ -266,42 +268,46 @@ class MorphlingTokenizer(PreTrainedTokenizer):
 
         # memoize because stemming is expensive
         word_key = word.lower()
-        if word_key in self.memo:
-            stem = self.memo[word_key]
-        else:
-            stem = stemmer.get_stem(word)
-
-        root = str(stem)
-        # print(stem.__dict__)
-
+        root = word
         special_tokens = []
-        if root in self.wordlist:
-            self.memo.setdefault(word_key, stem)
 
-            if stem.dup:
-                special_tokens.append(self.REPEAT_TAG)
+        if not self.skip_stem_cache.contains(word_key):
+            if word_key in self.stem_memo:
+                stem = self.stem_memo[word_key]
+            else:
+                stem = stemmer.get_stem(word)
 
-            if stem.rep:
-                special_tokens.append(self.REDUP_TAG)
+            root = str(stem)
+            # print(stem.__dict__)
 
-            if stem.inf:
-                special_tokens.append(stem.inf + self.INFIX_TAG)
+            if root in self.wordlist:
+                self.stem_memo.setdefault(word_key, stem)
 
-            if stem.pre:
-                special_tokens.append(stem.pre + self.PREFIX_TAG)
+                if stem.dup:
+                    special_tokens.append(self.REPEAT_TAG)
 
-            # NOTE: phoneme change, assimilation, vowel loss, and metathesis doesn't change meaning so its ok for now
-            if stem.suf:
-                special_tokens.append(stem.suf + self.SUFFIX_TAG)
+                if stem.rep:
+                    special_tokens.append(self.REDUP_TAG)
 
-            if stem.contraction:
-                special_tokens.append(stem.contraction + self.SUFFIX_TAG)
+                if stem.inf:
+                    special_tokens.append(stem.inf + self.INFIX_TAG)
 
-            if is_capital:
-                special_tokens.append(self.CAPITAL_TAG)
-        else:
-            # either a proper noun or non-tagalog word
-            root = word
+                if stem.pre:
+                    special_tokens.append(stem.pre + self.PREFIX_TAG)
+
+                # NOTE: phoneme change, assimilation, vowel loss, and metathesis doesn't change meaning so its ok for now
+                if stem.suf:
+                    special_tokens.append(stem.suf + self.SUFFIX_TAG)
+
+                if stem.contraction:
+                    special_tokens.append(stem.contraction + self.SUFFIX_TAG)
+
+                if is_capital:
+                    special_tokens.append(self.CAPITAL_TAG)
+            else:
+                # either a proper noun or non-tagalog word
+                self.skip_stem_cache.access(word_key)
+                root = word
 
         # TODO: perform SentencePiece BPE on root word
         bpe_tokens = self.bpe_tokenizer.tokenize(root)
