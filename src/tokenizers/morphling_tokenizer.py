@@ -6,6 +6,7 @@ from pathlib import Path
 from datasets import concatenate_datasets, Dataset
 from tglstemmer import stemmer
 from tokenizers import SentencePieceBPETokenizer
+from tokenizers.normalizers import Sequence, NFKC, StripAccents
 from transformers.tokenization_python import PreTrainedTokenizer
 
 from .sentencepiece_tokenizer import SentencePieceTokenizer
@@ -70,6 +71,8 @@ class MorphlingTokenizer(PreTrainedTokenizer):
             add_bos_token=False,
             add_eos_token=False,
         )
+
+        self.normalizer = Sequence([NFKC(), StripAccents()])
 
         # for O(1) identification if token is special
         self.SPECIAL_TOKEN_MARKER = "\u241f"
@@ -306,6 +309,7 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         return tokens
 
     def _split_to_words(self, text: str) -> list:
+        text = self.normalizer.normalize_str(text)
         words = self.word_split_regex.findall(text)
         return words
 
