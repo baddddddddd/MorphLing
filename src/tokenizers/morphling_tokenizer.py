@@ -127,6 +127,8 @@ class MorphlingTokenizer(PreTrainedTokenizer):
             ]
         )
 
+        self.memo = {}
+
     def _load_wordlist(self):
         self.wordlist = set()
         with open(self.WORDLIST_FILE, "r") as f:
@@ -259,12 +261,20 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         # NOTE: capitalization check, not robust but fast
         is_capital = word[0].isupper() and word[-1].islower()
 
-        stem = stemmer.get_stem(word)
+        # memoize because stemming is expensive
+        word_key = word.lower()
+        if word_key in self.memo:
+            stem = self.memo[word_key]
+        else:
+            stem = stemmer.get_stem(word)
+
         root = str(stem)
         # print(stem.__dict__)
 
         special_tokens = []
         if root in self.wordlist:
+            self.memo.setdefault(word_key, stem)
+
             if stem.dup:
                 special_tokens.append(self.REPEAT_TAG)
 
