@@ -3,6 +3,7 @@ import os
 import hydra
 from datasets import load_dataset, DatasetDict
 from huggingface_hub import login
+from itertools import chain
 from omegaconf import DictConfig, OmegaConf
 
 from ..tokenizers import MorphlingTokenizer, SentencePieceTokenizer
@@ -42,8 +43,11 @@ def main(cfg: DictConfig):
     def group_texts(examples):
         block_size = cfg.model.context_window
 
-        concatenated_examples = {k: sum(examples[k], []) for k in examples.keys()}
-        total_length = len(concatenated_examples[list(examples.keys())[0]])
+        concatenated_examples = {
+            k: list(chain.from_iterable(examples[k])) for k in examples.keys()
+        }
+
+        total_length = len(next(iter(concatenated_examples.values())))
 
         result = {
             k: [t[i : i + block_size] for i in range(0, total_length, block_size)]
