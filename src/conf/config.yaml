@@ -5,5 +5,4 @@ defaults:
   - dataset: "test-wikipedia-tl.yaml"
   - training: "debug-llama-27m-morphling.yaml"
 
-tokenizer_file: "data/tokenizer/test.json"
 resume_from_checkpoint: false
