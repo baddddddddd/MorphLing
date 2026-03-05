@@ -71,3 +71,7 @@ def main(cfg: DictConfig):
     dataset.push_to_hub(cfg.repo_id)
 
     print(f"> Pushed collated dataset to {cfg.repo_id}.")
+
+
+if __name__ == "__main__":
+    main()
