@@ -64,7 +64,7 @@ def main(cfg: DictConfig):
     dataset = dataset.map(
         group_texts,
         batched=True,
-        batch_size=1000,
+        batch_size=200,
         num_proc=num_proc,
         remove_columns=dataset.column_names,
     )
