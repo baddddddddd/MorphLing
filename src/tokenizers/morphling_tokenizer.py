@@ -50,6 +50,10 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         self.word_split_regex = re.compile(self.WORD_SPLIT_PATTERN, re.UNICODE)
         self.normalizer = Sequence([NFKC(), StripAccents()])
 
+        # caches
+        self.stem_memo = {}
+        self.skip_stem_cache = LFUCache(capacity=100000)
+
         # train on corpus_file if tokenizer_file doesn't exist yet
         if not os.path.exists(bpe_tokenizer_file):
             if dataset is None:
@@ -129,9 +133,6 @@ class MorphlingTokenizer(PreTrainedTokenizer):
                 self.unk_token,
             ]
         )
-
-        self.stem_memo = {}
-        self.skip_stem_cache = LFUCache(capacity=100000)
 
     def _load_wordlist(self):
         self.wordlist = set()
@@ -441,11 +442,24 @@ class MorphlingTokenizer(PreTrainedTokenizer):
             if len(word) <= 1:
                 continue
 
-            stem = stemmer.get_stem(word)
-            if stem in self.wordlist:
-                tokens.append(stem)
-            else:
-                tokens.append(word)
+            word_key = word.lower()
+            root = word
+
+            if not self.skip_stem_cache.contains(word_key):
+                if word_key in self.stem_memo:
+                    stem = self.stem_memo[word_key]
+                else:
+                    stem = stemmer.get_stem(word)
+
+                root = str(stem)
+
+                if root in self.wordlist:
+                    self.stem_memo.setdefault(word_key, stem)
+                else:
+                    self.skip_stem_cache.access(word_key)
+                    root = word
+
+            tokens.append(root)
 
         processed = " ".join(tokens)
         return {"text": processed}
@@ -472,22 +486,20 @@ class MorphlingTokenizer(PreTrainedTokenizer):
             num_proc=os.cpu_count(),
         )
 
-        char_dataset = Dataset.from_dict(
-            {"text": ["".join(chr(i) for i in range(256))]}
-        )
-        dataset = concatenate_datasets([char_dataset, dataset])
-
         def batch_iterator(batch_size=1000):
             for i in range(0, len(dataset), batch_size):
                 yield dataset[i : i + batch_size]["text"]
 
         tokenizer = SentencePieceBPETokenizer()
 
+        initial_alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ \t\n"
+
         tokenizer.train_from_iterator(
             batch_iterator(),
             vocab_size=vocab_size,
             min_frequency=min_frequency,
             show_progress=True,
+            initial_alphabet=list(initial_alphabet),
             special_tokens=[unk_token, bos_token, eos_token],
         )
 
