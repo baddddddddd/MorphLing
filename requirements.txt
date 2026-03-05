@@ -56,7 +56,7 @@ six==1.17.0
 soupsieve==2.8.3
 sympy==1.14.0
 tabulate==0.9.0
-tglstemmer @ git+https://github.com/baddddddddd/tagalog-stemmer.git@7db9e0e7c6f80f1f77e42da56df9e97cb2110c3e
+tglstemmer @ git+https://github.com/baddddddddd/tagalog-stemmer.git@a80698a3cd2420caef999a11c7de869d8799d6ca
 tokenizers==0.22.2
 torch==2.10.0
 torchaudio==2.10.0
