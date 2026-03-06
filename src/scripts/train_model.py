@@ -1,10 +1,11 @@
 import math
 import os
+import re
 
 import hydra
 import torchinfo
 from datasets import load_dataset
-from huggingface_hub import login
+from huggingface_hub import login, HfApi, snapshot_download
 from omegaconf import DictConfig, OmegaConf
 from transformers.data.data_collator import DataCollatorForLanguageModeling
 from transformers.models.llama import LlamaConfig, LlamaForCausalLM
@@ -50,10 +51,16 @@ def main(cfg: DictConfig):
 
     login(cfg.hf_token)
 
+    api = HfApi()
+    user = api.whoami()
+    username = user["name"]
+
+    print(f"\n> Logged in as {username}")
+
     TokenizerClass = tokenizer_registry[cfg.tokenizer.name]
     tokenizer = TokenizerClass(cfg.tokenizer.file)
 
-    print("=== LLaMa Configuration ===")
+    print("\n=== LLaMa Configuration ===")
     hidden_size = cfg.model.hidden_size
     config = LlamaConfig(
         vocab_size=tokenizer.vocab_size,
@@ -117,7 +124,36 @@ def main(cfg: DictConfig):
         hub_strategy="all_checkpoints",
     )
 
-    print("=== Training Configuration ===")
+    resume_path = None
+    latest_checkpoint_folder = None
+    if cfg.resume_from_checkpoint:
+        repo_id = f"{username}/{cfg.training.output_dir}"
+        repo_files = api.list_repo_files(repo_id=repo_id)
+
+        checkpoint_numbers = []
+        for file_path in repo_files:
+            match = re.search(r"checkpoint-(\d+)", file_path)
+            if match:
+                checkpoint_numbers.append(int(match.group(1)))
+
+        if not checkpoint_numbers:
+            raise Exception("No checkpoints found.")
+
+        latest_step = max(checkpoint_numbers)
+        latest_checkpoint_folder = f"checkpoint-{latest_step}"
+        print(f"Found latest checkpoint: {latest_checkpoint_folder}")
+
+        snapshot_download(
+            repo_id=repo_id,
+            allow_patterns=[f"*{latest_checkpoint_folder}/*"],
+            local_dir=cfg.training.output_dir,
+        )
+        resume_path = f"{cfg.training.output_dir}/{latest_checkpoint_folder}"
+
+    print("\n=== Training Configuration ===")
+    if latest_checkpoint_folder:
+        print(f"checkpoint: {latest_checkpoint_folder}")
+
     print(OmegaConf.to_yaml(cfg.training))
 
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
@@ -131,7 +167,7 @@ def main(cfg: DictConfig):
 
     print("> Beginning training...")
 
-    trainer.train(resume_from_checkpoint=cfg.resume_from_checkpoint)
+    trainer.train(resume_from_checkpoint=resume_path)
 
     trainer.save_model(cfg.training.output_dir)
     tokenizer.save_pretrained(cfg.training.output_dir)
