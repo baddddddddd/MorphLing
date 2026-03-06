@@ -1,6 +1,6 @@
 output_dir: "llama-85m-sentencepiece-16k"
-train_batch_size: 64
-gradient_accumulation_steps: 8
+train_batch_size: 32
+gradient_accumulation_steps: 16
 max_steps: 6000
 learning_rate: 1.5e-3
 warmup_steps: 300
