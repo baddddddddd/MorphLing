@@ -41,8 +41,6 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         # NOTE: MAKE SURE TO UPDATE THIS AS YOU ADD MORE SPECIAL TOKENS
         self.SPECIAL_TOKEN_COUNT = 126
 
-        self._load_wordlist()
-
         # keep newlines and split on space
         # keep punctuations
         # handle words like araw-araw, 'Yon, and di'ba
@@ -53,6 +51,8 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         # caches
         self.stem_memo = {}
         self.skip_stem_cache = LFUCache(capacity=100000)
+
+        self._load_wordlist()
 
         # train on corpus_file if tokenizer_file doesn't exist yet
         if not os.path.exists(bpe_tokenizer_file):
@@ -133,6 +133,8 @@ class MorphlingTokenizer(PreTrainedTokenizer):
                 self.unk_token,
             ]
         )
+
+        self._build_recovery_dictionary()
 
     def _load_wordlist(self):
         self.wordlist = set()
@@ -381,6 +383,19 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         new_stem = stem.capitalize()
         return new_stem
 
+    def _build_recovery_dictionary(self):
+        self.recovery_dict = dict()
+        for orig_word in self.wordlist:
+            tokens = self._tokenize_word(orig_word)
+            detokenized_word = self._detokenize_word(tokens)
+            if orig_word != detokenized_word:
+                self.recovery_dict[detokenized_word] = orig_word
+
+    def _recover_original_word(self, detokenized_word: str) -> str:
+        word_key = detokenized_word.lower()
+        orig_word = self.recovery_dict.get(word_key, detokenized_word)
+        return orig_word
+
     def _detokenize_word(self, word_tokens: list) -> str:
         if not word_tokens:
             return ""
@@ -404,6 +419,7 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         if stem in self.SEQUENCE_TOKENS:
             return stem
 
+        is_capital = False
         while i < len(word_tokens):
             token = word_tokens[i]
             i += 1
@@ -429,9 +445,14 @@ class MorphlingTokenizer(PreTrainedTokenizer):
 
             if token.endswith(self.CAPITAL_TAG):
                 stem = self._reconstruct_capitalization(stem)
+                is_capital = True
                 continue
 
-        return stem
+        orig_word = self._recover_original_word(stem)
+        if is_capital:
+            orig_word = orig_word.capitalize()
+
+        return orig_word
 
     def _is_special_token(self, token: str) -> bool:
         if not token:
