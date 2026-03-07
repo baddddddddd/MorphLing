@@ -320,10 +320,16 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         return words
 
     def _reconstruct_full_reduplication(self, stem: str) -> str:
+        if not stem:
+            return ""
+
         new_stem = f"{stem}-{stem}"
         return new_stem
 
     def _reconstruct_partial_reduplication(self, stem: str) -> str:
+        if not stem:
+            return ""
+
         if stem[0] in self.VOWEL_CHARS:
             v = stem[0]
             new_stem = v + stem
@@ -334,6 +340,9 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         return new_stem
 
     def _reconstruct_infix(self, stem: str, infix_token: str) -> str:
+        if not stem:
+            return ""
+
         infix = infix_token[:2]
         if stem[0] in self.VOWEL_CHARS:
             new_stem = infix + stem
@@ -346,6 +355,9 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         return suffix_stem
 
     def _reconstruct_suffix(self, stem: str, suffix_token: str) -> str:
+        if not stem:
+            return ""
+
         suffix = self._get_suffix(suffix_token)
         new_stem = stem + suffix
         return new_stem
@@ -355,11 +367,17 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         return prefix_stem
 
     def _reconstruct_prefix(self, stem: str, prefix_token: str) -> str:
+        if not stem:
+            return ""
+
         prefix = self._get_prefix(prefix_token)
         new_stem = prefix + stem
         return new_stem
 
     def _reconstruct_capitalization(self, stem: str) -> str:
+        if not stem:
+            return ""
+
         new_stem = stem.capitalize()
         return new_stem
 
