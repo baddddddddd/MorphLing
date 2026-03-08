@@ -115,8 +115,16 @@ def main(cfg: DictConfig):
     print(f"\n> Loading {cfg.tokenizer.name} with {cfg.tokenizer.file}")
 
     model_id = f"{username}/{cfg.training.output_dir}"
-    print(f"\n> Loading {model_id}")
-    model = LlamaForCausalLM.from_pretrained(model_id)
+
+    load_kwargs = {}
+    if "checkpoint" in cfg:
+        checkpoint_folder = f"checkpoint-{cfg.checkpoint}"
+        load_kwargs["subfolder"] = checkpoint_folder
+        print(f"\n> Loading {model_id} (subfolder: {checkpoint_folder})")
+    else:
+        print(f"\n> Loading {model_id}")
+
+    model = LlamaForCausalLM.from_pretrained(model_id, **load_kwargs)
 
     print()
     torchinfo.summary(model)
