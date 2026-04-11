@@ -62,6 +62,7 @@ class UnigramTokenizer(LlamaTokenizerFast):
             vocab_size=vocab_size,
             show_progress=True,
             special_tokens=[unk_token, bos_token, eos_token],
+            unk_token=unk_token,
         )
 
         tokenizer.save(output_file)
