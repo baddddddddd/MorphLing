@@ -1,0 +1,3 @@
+name: "UnigramTokenizer"
+file: "data/tokenizer/unigram-16k.json"
+vocab_size: 16000

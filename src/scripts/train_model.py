@@ -12,7 +12,7 @@ from transformers.models.llama import LlamaConfig, LlamaForCausalLM
 from transformers.trainer import Trainer
 from transformers.training_args import TrainingArguments
 
-from ..tokenizers import MorphlingTokenizer, SentencePieceTokenizer
+from ..tokenizers import MorphlingTokenizer, SentencePieceTokenizer, UnigramTokenizer
 
 
 def calculate_intermediate_size(hidden_size: int) -> int:
@@ -36,6 +36,7 @@ def calculate_num_attention_heads(hidden_size: int) -> int:
 tokenizer_registry = {
     "MorphlingTokenizer": MorphlingTokenizer,
     "SentencePieceTokenizer": SentencePieceTokenizer,
+    "UnigramTokenizer": UnigramTokenizer,
 }
 
 

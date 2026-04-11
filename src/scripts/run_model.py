@@ -5,12 +5,13 @@ from omegaconf import DictConfig, OmegaConf
 from transformers.tokenization_python import PreTrainedTokenizer
 from transformers.models.auto import AutoModelForCausalLM
 
-from ..tokenizers import MorphlingTokenizer, SentencePieceTokenizer
+from ..tokenizers import MorphlingTokenizer, SentencePieceTokenizer, UnigramTokenizer
 
 
 tokenizer_registry = {
     "MorphlingTokenizer": MorphlingTokenizer,
     "SentencePieceTokenizer": SentencePieceTokenizer,
+    "UnigramTokenizer": UnigramTokenizer,
 }
 
 

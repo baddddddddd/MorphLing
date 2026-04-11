@@ -3,11 +3,12 @@ from pathlib import Path
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
-from ..tokenizers import MorphlingTokenizer, SentencePieceTokenizer
+from ..tokenizers import MorphlingTokenizer, SentencePieceTokenizer, UnigramTokenizer
 
 tokenizer_registry = {
     "MorphlingTokenizer": MorphlingTokenizer,
     "SentencePieceTokenizer": SentencePieceTokenizer,
+    "UnigramTokenizer": UnigramTokenizer,
 }
 
 

@@ -1,2 +1,3 @@
 from .morphling_tokenizer import MorphlingTokenizer
 from .sentencepiece_tokenizer import SentencePieceTokenizer
+from .unigram_tokenizer import UnigramTokenizer
