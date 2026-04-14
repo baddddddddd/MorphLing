@@ -1,0 +1,1211 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MorphLing — Tokenizer Laboratory</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* ── OKLCH tokens ────────────────────────────────────────────────────────── */
+      :root {
+        --surface: oklch(97.5% 0.008 240);
+        --surface-low: oklch(94.5% 0.012 240);
+        --surface-lowest: oklch(100% 0 0);
+        --surface-container: oklch(91% 0.014 240);
+        --surface-high: oklch(87% 0.016 240);
+
+        --primary: oklch(47% 0.18 270);
+        --primary-dim: oklch(42% 0.2 268);
+        --primary-fixed-dim: oklch(90% 0.06 268);
+        --on-primary: oklch(100% 0 0);
+
+        --secondary-container: oklch(91% 0.05 268);
+        --on-secondary-container: oklch(34% 0.15 268);
+
+        --tertiary: oklch(60% 0.17 230);
+
+        --on-surface: oklch(22% 0.015 240);
+        --on-surface-variant: oklch(48% 0.018 240);
+        --outline-variant: oklch(74% 0.016 240);
+
+        --error: oklch(54% 0.22 28);
+        --error-container: oklch(94% 0.05 28);
+        --success: oklch(52% 0.18 158);
+        --success-container: oklch(93% 0.06 158);
+
+        /* token type palette */
+        --c-boundary: oklch(47% 0.18 270);
+        --c-subword: oklch(42% 0.06 240);
+        --c-prefix: oklch(50% 0.2 158);
+        --c-suffix: oklch(52% 0.19 42);
+        --c-infix: oklch(54% 0.22 300);
+        --c-redup: oklch(54% 0.2 200);
+        --c-repeat: oklch(52% 0.19 185);
+        --c-capital: oklch(52% 0.17 82);
+        --c-special: oklch(50% 0.04 240);
+        --c-morpheme: oklch(50% 0.17 320);
+
+        --bg-boundary: oklch(94% 0.05 270);
+        --bg-subword: oklch(96% 0.015 240);
+        --bg-prefix: oklch(93% 0.07 158);
+        --bg-suffix: oklch(93% 0.06 42);
+        --bg-infix: oklch(93% 0.07 300);
+        --bg-redup: oklch(93% 0.06 200);
+        --bg-repeat: oklch(93% 0.06 185);
+        --bg-capital: oklch(95% 0.05 82);
+        --bg-special: oklch(93% 0.02 240);
+        --bg-morpheme: oklch(93% 0.06 320);
+
+        --r-sm: 2px;
+        --r-md: 6px;
+        --shadow: 0 4px 24px oklch(22% 0.015 240 / 0.07);
+        --shadow-lg: 0 8px 40px oklch(22% 0.015 240 / 0.1);
+
+        --font-d: "Space Grotesk", sans-serif;
+        --font-b: "Inter", sans-serif;
+        --font-m: "JetBrains Mono", monospace;
+
+        --sp-accent: var(--c-subword);
+        --ml-accent: var(--c-prefix);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: var(--font-b);
+        background: var(--surface);
+        color: var(--on-surface);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ── Header ─────────────────────────────────────────────────────────────── */
+      .header {
+        position: sticky;
+        top: 0;
+        z-index: 200;
+        background: oklch(100% 0 0 / 0.88);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid oklch(74% 0.016 240 / 0.18);
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 40px;
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .logo-pip {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--tertiary);
+        box-shadow: 0 0 0 3px oklch(60% 0.17 230 / 0.18);
+        animation: breathe 3.2s ease-in-out infinite;
+      }
+      @keyframes breathe {
+        0%,
+        100% {
+          box-shadow: 0 0 0 3px oklch(60% 0.17 230 / 0.18);
+        }
+        50% {
+          box-shadow: 0 0 0 7px oklch(60% 0.17 230 / 0.06);
+        }
+      }
+      .logo-name {
+        font-family: var(--font-d);
+        font-weight: 600;
+        font-size: 0.98rem;
+        letter-spacing: -0.01em;
+        color: var(--on-surface);
+      }
+      .logo-name span {
+        color: var(--primary);
+      }
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+      .header-tag {
+        font-family: var(--font-m);
+        font-size: 0.62rem;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        color: var(--on-surface-variant);
+      }
+      .kbd {
+        font-family: var(--font-m);
+        font-size: 0.62rem;
+        background: var(--surface-container);
+        color: var(--on-surface-variant);
+        border: 1px solid oklch(74% 0.016 240 / 0.35);
+        border-radius: var(--r-sm);
+        padding: 2px 6px;
+      }
+
+      /* ── Main layout ─────────────────────────────────────────────────────────── */
+      .page {
+        max-width: 1380px;
+        margin: 0 auto;
+        padding: 36px 40px 100px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      /* ── Hero text ───────────────────────────────────────────────────────────── */
+      .hero {
+        padding-bottom: 28px;
+      }
+      .hero h1 {
+        font-family: var(--font-d);
+        font-size: 1.9rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+      }
+      .hero h1 em {
+        font-style: normal;
+        background: linear-gradient(
+          125deg,
+          var(--primary) 0%,
+          var(--tertiary) 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .hero p {
+        margin-top: 8px;
+        font-size: 0.85rem;
+        color: var(--on-surface-variant);
+        max-width: 580px;
+        line-height: 1.65;
+      }
+
+      /* ── Input card ──────────────────────────────────────────────────────────── */
+      .input-card {
+        background: var(--surface-lowest);
+        border-radius: var(--r-md);
+        box-shadow: var(--shadow);
+        padding: 24px 28px 20px;
+        margin-bottom: 20px;
+      }
+      .field-label {
+        font-family: var(--font-d);
+        font-size: 0.62rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--on-surface-variant);
+        margin-bottom: 8px;
+        display: block;
+      }
+      textarea {
+        width: 100%;
+        min-height: 100px;
+        background: var(--surface-low);
+        border: 1px solid oklch(74% 0.016 240 / 0);
+        border-radius: var(--r-md);
+        padding: 12px 14px;
+        font-family: var(--font-b);
+        font-size: 0.92rem;
+        color: var(--on-surface);
+        resize: vertical;
+        outline: none;
+        transition:
+          border-color 0.18s,
+          background 0.18s,
+          box-shadow 0.18s;
+        line-height: 1.65;
+      }
+      textarea::placeholder {
+        color: var(--on-surface-variant);
+        opacity: 0.55;
+      }
+      textarea:focus {
+        border-color: var(--primary);
+        border-width: 2px;
+        background: var(--surface-lowest);
+        box-shadow: 0 0 0 3px oklch(47% 0.18 270 / 0.08);
+      }
+      .input-row {
+        margin-top: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .samples {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .samples-lbl {
+        font-family: var(--font-m);
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--on-surface-variant);
+        white-space: nowrap;
+      }
+      .chip {
+        font-family: var(--font-b);
+        font-size: 0.74rem;
+        padding: 3px 9px;
+        border-radius: var(--r-sm);
+        background: var(--secondary-container);
+        color: var(--on-secondary-container);
+        cursor: pointer;
+        border: none;
+        transition: all 0.14s;
+      }
+      .chip:hover {
+        background: var(--primary-fixed-dim);
+        color: var(--primary-dim);
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .btn {
+        font-family: var(--font-d);
+        font-weight: 500;
+        font-size: 0.8rem;
+        border: none;
+        border-radius: var(--r-md);
+        cursor: pointer;
+        padding: 8px 18px;
+        transition: all 0.16s;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+      }
+      .btn-primary {
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-dim) 100%
+        );
+        color: var(--on-primary);
+        box-shadow: 0 2px 10px oklch(47% 0.18 270 / 0.28);
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 18px oklch(47% 0.18 270 / 0.38);
+      }
+      .btn-primary:active {
+        transform: none;
+      }
+      .btn-primary:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+      .btn-ghost {
+        background: none;
+        border: 1px solid oklch(74% 0.016 240 / 0.3);
+        color: var(--on-surface-variant);
+      }
+      .btn-ghost:hover {
+        background: var(--surface-container);
+        border-color: transparent;
+      }
+
+      /* ── View tabs ───────────────────────────────────────────────────────────── */
+      .view-bar {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: var(--surface-container);
+        border-radius: var(--r-md);
+        padding: 3px;
+        width: fit-content;
+        margin-bottom: 16px;
+      }
+      .view-tab {
+        font-family: var(--font-d);
+        font-size: 0.76rem;
+        font-weight: 500;
+        padding: 5px 14px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        background: none;
+        color: var(--on-surface-variant);
+        transition: all 0.15s;
+      }
+      .view-tab.active {
+        background: var(--surface-lowest);
+        color: var(--on-surface);
+        box-shadow: 0 1px 4px oklch(22% 0.015 240 / 0.1);
+      }
+
+      /* ── Delta summary ───────────────────────────────────────────────────────── */
+      .delta-summary {
+        display: none;
+        margin-bottom: 16px;
+        background: var(--surface-lowest);
+        border-radius: var(--r-md);
+        box-shadow: var(--shadow);
+        padding: 16px 24px;
+        gap: 32px;
+        align-items: center;
+      }
+      .delta-summary.show {
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      .delta-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        min-width: 72px;
+      }
+      .delta-val {
+        font-family: var(--font-d);
+        font-weight: 700;
+        font-size: 1.5rem;
+        letter-spacing: -0.03em;
+      }
+      .delta-val.sp {
+        color: var(--c-subword);
+      }
+      .delta-val.ml {
+        color: var(--c-prefix);
+      }
+      .delta-val.diff-pos {
+        color: var(--error);
+      }
+      .delta-val.diff-neg {
+        color: var(--success);
+      }
+      .delta-val.diff-zero {
+        color: var(--on-surface-variant);
+      }
+      .delta-lbl {
+        font-family: var(--font-m);
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--on-surface-variant);
+        text-align: center;
+      }
+      .delta-bars {
+        flex: 1;
+        min-width: 200px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .delta-track-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .delta-track-lbl {
+        font-family: var(--font-m);
+        font-size: 0.62rem;
+        width: 26px;
+        color: var(--on-surface-variant);
+        text-align: right;
+      }
+      .delta-track {
+        flex: 1;
+        height: 8px;
+        background: var(--surface-container);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .delta-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .delta-fill.sp {
+        background: var(--c-subword);
+      }
+      .delta-fill.ml {
+        background: var(--c-prefix);
+      }
+      .delta-track-count {
+        font-family: var(--font-m);
+        font-size: 0.62rem;
+        color: var(--on-surface-variant);
+        min-width: 24px;
+      }
+
+      /* ── Comparison grid ─────────────────────────────────────────────────────── */
+      .compare-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .panel {
+        background: var(--surface-lowest);
+        border-radius: var(--r-md);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .panel-head {
+        padding: 16px 22px 14px;
+        background: var(--surface-low);
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+      }
+      .panel-name {
+        font-family: var(--font-d);
+        font-weight: 600;
+        font-size: 0.92rem;
+        letter-spacing: -0.01em;
+      }
+      .panel-sub {
+        font-size: 0.7rem;
+        color: var(--on-surface-variant);
+        margin-top: 2px;
+      }
+      .badge {
+        font-family: var(--font-m);
+        font-size: 0.65rem;
+        font-weight: 500;
+        padding: 3px 9px;
+        border-radius: var(--r-sm);
+      }
+      .badge-sp {
+        background: var(--bg-subword);
+        color: var(--c-subword);
+      }
+      .badge-ml {
+        background: var(--bg-prefix);
+        color: var(--c-prefix);
+      }
+
+      .panel-stats {
+        display: none;
+        gap: 24px;
+        padding: 10px 22px;
+        background: var(--surface-container);
+        border-bottom: none;
+      }
+      .panel-stats.show {
+        display: flex;
+      }
+      .stat-n {
+        font-family: var(--font-d);
+        font-weight: 700;
+        font-size: 1.3rem;
+        letter-spacing: -0.03em;
+      }
+      .stat-l {
+        font-family: var(--font-m);
+        font-size: 0.59rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--on-surface-variant);
+      }
+
+      .panel-body {
+        padding: 18px 22px 20px;
+        flex: 1;
+        min-height: 160px;
+      }
+
+      /* ── Token chips ─────────────────────────────────────────────────────────── */
+      .tokens-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      .tok {
+        font-family: var(--font-m);
+        font-size: 0.74rem;
+        font-weight: 500;
+        padding: 4px 8px;
+        border-radius: var(--r-sm);
+        cursor: default;
+        transition:
+          transform 0.12s,
+          box-shadow 0.12s;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        position: relative;
+      }
+      .tok:hover {
+        transform: translateY(-2px);
+        z-index: 5;
+      }
+      .tok .tok-id {
+        font-size: 0.56rem;
+        opacity: 0.55;
+        margin-left: 2px;
+      }
+
+      .tok-boundary {
+        background: var(--bg-boundary);
+        color: var(--c-boundary);
+      }
+      .tok-subword {
+        background: var(--bg-subword);
+        color: var(--c-subword);
+      }
+      .tok-prefix {
+        background: var(--bg-prefix);
+        color: var(--c-prefix);
+      }
+      .tok-suffix {
+        background: var(--bg-suffix);
+        color: var(--c-suffix);
+      }
+      .tok-infix {
+        background: var(--bg-infix);
+        color: var(--c-infix);
+      }
+      .tok-redup {
+        background: var(--bg-redup);
+        color: var(--c-redup);
+      }
+      .tok-repeat {
+        background: var(--bg-repeat);
+        color: var(--c-repeat);
+      }
+      .tok-capital {
+        background: var(--bg-capital);
+        color: var(--c-capital);
+      }
+      .tok-special {
+        background: var(--bg-special);
+        color: var(--c-special);
+      }
+      .tok-morpheme {
+        background: var(--bg-morpheme);
+        color: var(--c-morpheme);
+      }
+
+      /* ── Word-group view ─────────────────────────────────────────────────────── */
+      .word-groups {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .word-group {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 14px;
+        background: var(--surface-low);
+        border-radius: var(--r-md);
+      }
+      .word-idx {
+        font-family: var(--font-m);
+        font-size: 0.6rem;
+        color: var(--on-surface-variant);
+        padding-top: 5px;
+        min-width: 18px;
+        text-align: right;
+      }
+      .word-toks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      /* ── IDs view ────────────────────────────────────────────────────────────── */
+      .ids-view {
+        font-family: var(--font-m);
+        font-size: 0.72rem;
+        line-height: 2;
+        color: var(--on-surface-variant);
+        word-break: break-all;
+      }
+      .ids-view .id-chip {
+        display: inline-block;
+        margin: 2px 3px;
+        padding: 2px 6px;
+        border-radius: var(--r-sm);
+        background: var(--surface-container);
+        color: var(--on-surface-variant);
+        font-size: 0.7rem;
+      }
+
+      /* ── Legend ──────────────────────────────────────────────────────────────── */
+      .legend {
+        display: none;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        padding: 12px 22px;
+        border-top: 1px solid oklch(74% 0.016 240 / 0.14);
+      }
+      .legend.show {
+        display: flex;
+      }
+      .leg-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.68rem;
+        color: var(--on-surface-variant);
+      }
+      .leg-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 1px;
+        flex-shrink: 0;
+      }
+
+      /* ── Empty / loading / error ─────────────────────────────────────────────── */
+      .empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 160px;
+        color: var(--on-surface-variant);
+        opacity: 0.4;
+      }
+      .empty-glyph {
+        font-size: 1.8rem;
+      }
+      .empty-txt {
+        font-family: var(--font-d);
+        font-size: 0.8rem;
+      }
+      .spinner {
+        width: 26px;
+        height: 26px;
+        border: 2px solid var(--primary-fixed-dim);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 0.75s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .err-box {
+        padding: 14px 16px;
+        background: var(--error-container);
+        border-radius: var(--r-md);
+        color: var(--error);
+        font-family: var(--font-m);
+        font-size: 0.78rem;
+        line-height: 1.5;
+      }
+
+      /* ── Fade-in on result ───────────────────────────────────────────────────── */
+      .result-appear {
+        animation: appear 0.28s ease both;
+      }
+      @keyframes appear {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      /* ── Responsive ──────────────────────────────────────────────────────────── */
+      @media (max-width: 860px) {
+        .page {
+          padding: 20px 16px 60px;
+        }
+        .compare-grid {
+          grid-template-columns: 1fr;
+        }
+        .header {
+          padding: 0 16px;
+        }
+        .delta-summary {
+          gap: 16px;
+        }
+      }
+
+      ::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--outline-variant);
+        border-radius: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="logo">
+        <div class="logo-pip"></div>
+        <span class="logo-name">Morph<span>Ling</span></span>
+      </div>
+      <div class="header-right">
+        <span class="header-tag"
+          >Tokenizer&nbsp;Laboratory&nbsp;·&nbsp;16k</span
+        >
+        <span class="kbd">Ctrl+↵</span>
+      </div>
+    </header>
+
+    <main class="page">
+      <!-- Hero -->
+      <div class="hero">
+        <h1>Side-by-Side <em>Tokenization</em></h1>
+        <p>
+          Compare <strong>SentencePiece BPE</strong> with
+          <strong>MorphLing</strong> — a morphology-aware Tagalog tokenizer that
+          explicitly encodes prefixes, suffixes, infixes, reduplication, and
+          capitalization as discrete morpheme tokens.
+        </p>
+      </div>
+
+      <!-- Input card -->
+      <div class="input-card">
+        <label class="field-label" for="ta">Input text</label>
+        <textarea
+          id="ta"
+          spellcheck="false"
+          placeholder="Type a Tagalog word, sentence, or paragraph…"
+        ></textarea>
+
+        <div class="input-row">
+          <div class="samples">
+            <span class="samples-lbl">Try →</span>
+            <button
+              class="chip"
+              onclick="
+                load(
+                  'Ang hindi magmahal sa sariling wika ay higit pa sa hayop at malansang isda.',
+                )
+              "
+            >
+              Ang hindi magmahal
+            </button>
+            <button class="chip" onclick="load('Magandang umaga sa lahat.')">
+              Magandang umaga
+            </button>
+            <button
+              class="chip"
+              onclick="
+                load(
+                  'Ang mga prutas ng Pilipinas ay kilala sa buong mundo dahil sa kanilang matamis na lasa.',
+                )
+              "
+            >
+              Mga prutas
+            </button>
+            <button
+              class="chip"
+              onclick="
+                load(
+                  'Ang pagmamahal ay nagbibigay ng lakas at pag-asa sa buhay.',
+                )
+              "
+            >
+              Pagmamahal
+            </button>
+            <button
+              class="chip"
+              onclick="load('The quick brown fox jumps over the lazy dog.')"
+            >
+              English
+            </button>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-ghost" onclick="reset()">Clear</button>
+            <button class="btn btn-primary" id="run-btn" onclick="go()">
+              Tokenize
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delta summary (shown after result) -->
+      <div class="delta-summary" id="delta">
+        <div class="delta-col">
+          <span class="delta-val sp" id="d-sp-n">—</span>
+          <span class="delta-lbl">BPE tokens</span>
+        </div>
+        <div class="delta-bars">
+          <div class="delta-track-row">
+            <span class="delta-track-lbl">BPE</span>
+            <div class="delta-track">
+              <div class="delta-fill sp" id="fill-sp" style="width: 50%"></div>
+            </div>
+            <span class="delta-track-count" id="cnt-sp">—</span>
+          </div>
+          <div class="delta-track-row">
+            <span class="delta-track-lbl">ML</span>
+            <div class="delta-track">
+              <div class="delta-fill ml" id="fill-ml" style="width: 50%"></div>
+            </div>
+            <span class="delta-track-count" id="cnt-ml">—</span>
+          </div>
+        </div>
+        <div class="delta-col">
+          <span class="delta-val" id="d-diff">—</span>
+          <span class="delta-lbl">Δ tokens</span>
+        </div>
+        <div class="delta-col">
+          <span class="delta-val" id="d-cpt-sp" style="color: var(--c-subword)"
+            >—</span
+          >
+          <span class="delta-lbl">BPE tokens/word</span>
+        </div>
+        <div class="delta-col">
+          <span class="delta-val" id="d-cpt-ml" style="color: var(--c-prefix)"
+            >—</span
+          >
+          <span class="delta-lbl">ML tokens/word</span>
+        </div>
+      </div>
+
+      <!-- View selector -->
+      <div class="view-bar" id="view-bar" style="display: none">
+        <button class="view-tab active" onclick="setView('flat', this)">
+          Flat tokens
+        </button>
+        <button class="view-tab" onclick="setView('word', this)">
+          By word
+        </button>
+        <button class="view-tab" onclick="setView('ids', this)">
+          Token IDs
+        </button>
+      </div>
+
+      <!-- Panels -->
+      <div class="compare-grid">
+        <!-- SentencePiece -->
+        <div class="panel" id="panel-sp">
+          <div class="panel-head">
+            <div>
+              <div class="panel-name">SentencePiece BPE</div>
+              <div class="panel-sub">
+                Byte-pair encoding · statistical subword units
+              </div>
+            </div>
+            <span class="badge badge-sp">BPE</span>
+          </div>
+          <div class="panel-stats" id="stats-sp">
+            <div>
+              <div class="stat-n" id="sp-n">—</div>
+              <div class="stat-l">tokens</div>
+            </div>
+            <div>
+              <div class="stat-n" id="sp-cpt">—</div>
+              <div class="stat-l">tokens / word</div>
+            </div>
+          </div>
+          <div class="panel-body" id="body-sp">
+            <div class="empty">
+              <div class="empty-glyph">◈</div>
+              <span class="empty-txt">Awaiting input</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MorphLing -->
+        <div class="panel" id="panel-ml">
+          <div class="panel-head">
+            <div>
+              <div class="panel-name">MorphLing</div>
+              <div class="panel-sub">
+                Morphology-aware · Tagalog affix decomposition
+              </div>
+            </div>
+            <span class="badge badge-ml">MORPH</span>
+          </div>
+          <div class="panel-stats" id="stats-ml">
+            <div>
+              <div class="stat-n" id="ml-n">—</div>
+              <div class="stat-l">tokens</div>
+            </div>
+            <div>
+              <div class="stat-n" id="ml-cpt">—</div>
+              <div class="stat-l">tokens / word</div>
+            </div>
+          </div>
+          <div class="panel-body" id="body-ml">
+            <div class="empty">
+              <div class="empty-glyph">◈</div>
+              <span class="empty-txt">Awaiting input</span>
+            </div>
+          </div>
+          <div class="legend" id="ml-legend">
+            <div class="leg-item">
+              <div class="leg-dot" style="background: var(--c-boundary)"></div>
+              Word boundary
+            </div>
+            <div class="leg-item">
+              <div class="leg-dot" style="background: var(--c-subword)"></div>
+              Subword
+            </div>
+            <div class="leg-item">
+              <div class="leg-dot" style="background: var(--c-prefix)"></div>
+              Prefix
+            </div>
+            <div class="leg-item">
+              <div class="leg-dot" style="background: var(--c-suffix)"></div>
+              Suffix
+            </div>
+            <div class="leg-item">
+              <div class="leg-dot" style="background: var(--c-infix)"></div>
+              Infix
+            </div>
+            <div class="leg-item">
+              <div class="leg-dot" style="background: var(--c-redup)"></div>
+              Partial redup
+            </div>
+            <div class="leg-item">
+              <div class="leg-dot" style="background: var(--c-repeat)"></div>
+              Full redup
+            </div>
+            <div class="leg-item">
+              <div class="leg-dot" style="background: var(--c-capital)"></div>
+              Capital
+            </div>
+            <div class="leg-item">
+              <div class="leg-dot" style="background: var(--c-special)"></div>
+              Special
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      /* ── state ──────────────────────────────────────────────────────────────── */
+      const ta = document.getElementById("ta");
+      const runBtn = document.getElementById("run-btn");
+
+      let currentData = null;
+      let currentView = "flat"; // 'flat' | 'word' | 'ids'
+
+      /* ── textarea ───────────────────────────────────────────────────────────── */
+      ta.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") go();
+      });
+
+      function load(text) {
+        ta.value = text;
+        go();
+      }
+
+      /* ── views ──────────────────────────────────────────────────────────────── */
+      function setView(v, el) {
+        currentView = v;
+        document
+          .querySelectorAll(".view-tab")
+          .forEach((t) => t.classList.remove("active"));
+        el.classList.add("active");
+        if (currentData) render(currentData);
+      }
+
+      /* ── reset ──────────────────────────────────────────────────────────────── */
+      function reset() {
+        ta.value = "";
+        currentData = null;
+        ["sp", "ml"].forEach((k) => {
+          document.getElementById(`body-${k}`).innerHTML =
+            `<div class="empty"><div class="empty-glyph">◈</div><span class="empty-txt">Awaiting input</span></div>`;
+          document.getElementById(`stats-${k}`).classList.remove("show");
+        });
+        document.getElementById("ml-legend").classList.remove("show");
+        document.getElementById("delta").classList.remove("show");
+        document.getElementById("view-bar").style.display = "none";
+      }
+
+      /* ── loading state ──────────────────────────────────────────────────────── */
+      function setLoading() {
+        ["sp", "ml"].forEach((k) => {
+          document.getElementById(`body-${k}`).innerHTML =
+            `<div class="empty"><div class="spinner"></div></div>`;
+        });
+      }
+
+      /* ── main fetch ─────────────────────────────────────────────────────────── */
+      async function go() {
+        const text = ta.value.trim();
+        if (!text) return;
+        runBtn.disabled = true;
+        setLoading();
+
+        try {
+          const res = await fetch("/tokenize", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text }),
+          });
+          if (!res.ok) {
+            const e = await res.json();
+            throw new Error(e.error || `HTTP ${res.status}`);
+          }
+          currentData = await res.json();
+          render(currentData);
+        } catch (err) {
+          ["sp", "ml"].forEach((k) => {
+            document.getElementById(`body-${k}`).innerHTML =
+              `<div class="err-box">⚠ ${err.message}</div>`;
+          });
+        } finally {
+          runBtn.disabled = false;
+        }
+      }
+
+      /* ── render ─────────────────────────────────────────────────────────────── */
+      function render(data) {
+        const { sentencepiece: sp, morphling: ml } = data;
+
+        /* stats */
+        document.getElementById("sp-n").textContent = sp.count;
+        document.getElementById("sp-cpt").textContent = sp.tokens_per_word;
+        document.getElementById("stats-sp").classList.add("show");
+
+        document.getElementById("ml-n").textContent = ml.count;
+        document.getElementById("ml-cpt").textContent = ml.tokens_per_word;
+        document.getElementById("stats-ml").classList.add("show");
+
+        /* delta */
+        const diff = ml.count - sp.count;
+        const maxN = Math.max(sp.count, ml.count);
+        document.getElementById("d-sp-n").textContent = sp.count;
+        document.getElementById("fill-sp").style.width =
+          ((sp.count / maxN) * 100).toFixed(1) + "%";
+        document.getElementById("cnt-sp").textContent = sp.count;
+        document.getElementById("fill-ml").style.width =
+          ((ml.count / maxN) * 100).toFixed(1) + "%";
+        document.getElementById("cnt-ml").textContent = ml.count;
+        const dEl = document.getElementById("d-diff");
+        dEl.textContent = (diff > 0 ? "+" : "") + diff;
+        dEl.className =
+          "delta-val " +
+          (diff > 0 ? "diff-pos" : diff < 0 ? "diff-neg" : "diff-zero");
+        document.getElementById("d-cpt-sp").textContent = sp.tokens_per_word;
+        document.getElementById("d-cpt-ml").textContent = ml.tokens_per_word;
+        document.getElementById("delta").classList.add("show");
+
+        /* view bar */
+        document.getElementById("view-bar").style.display = "flex";
+
+        /* bodies */
+        const spBody = document.getElementById("body-sp");
+        const mlBody = document.getElementById("body-ml");
+
+        if (currentView === "flat") {
+          spBody.innerHTML = "";
+          spBody.appendChild(buildFlat(sp.tokens));
+          mlBody.innerHTML = "";
+          mlBody.appendChild(buildFlat(ml.tokens));
+        } else if (currentView === "word") {
+          spBody.innerHTML = "";
+          spBody.appendChild(buildWords(sp.words));
+          mlBody.innerHTML = "";
+          mlBody.appendChild(buildWords(ml.words));
+        } else {
+          spBody.innerHTML = "";
+          spBody.appendChild(buildIds(sp.tokens));
+          mlBody.innerHTML = "";
+          mlBody.appendChild(buildIds(ml.tokens));
+        }
+
+        spBody.classList.add("result-appear");
+        mlBody.classList.add("result-appear");
+        void spBody.offsetWidth; // reflow to restart animation
+
+        document.getElementById("ml-legend").classList.add("show");
+      }
+
+      /* ── view builders ──────────────────────────────────────────────────────── */
+      function makeTok(t, showId = false) {
+        const el = document.createElement("span");
+        el.className = `tok tok-${t.type}`;
+        el.title = `${t.text}  ·  id: ${t.id}  ·  type: ${t.type}`;
+        el.appendChild(document.createTextNode(t.display));
+        if (showId) {
+          const idEl = document.createElement("span");
+          idEl.className = "tok-id";
+          idEl.textContent = t.id;
+          el.appendChild(idEl);
+        }
+        return el;
+      }
+
+      function buildFlat(tokens) {
+        const wrap = document.createElement("div");
+        wrap.className = "tokens-wrap result-appear";
+        tokens.forEach((t) => wrap.appendChild(makeTok(t)));
+        return wrap;
+      }
+
+      function buildWords(words) {
+        const wrap = document.createElement("div");
+        wrap.className = "word-groups result-appear";
+        words.forEach((w, i) => {
+          const row = document.createElement("div");
+          row.className = "word-group";
+
+          const idx = document.createElement("span");
+          idx.className = "word-idx";
+          idx.textContent = i + 1;
+          row.appendChild(idx);
+
+          const toks = document.createElement("div");
+          toks.className = "word-toks";
+          w.tokens.forEach((t) => toks.appendChild(makeTok(t)));
+          row.appendChild(toks);
+
+          wrap.appendChild(row);
+        });
+        return wrap;
+      }
+
+      function buildIds(tokens) {
+        const wrap = document.createElement("div");
+        wrap.className = "ids-view result-appear";
+        tokens.forEach((t) => {
+          const chip = document.createElement("span");
+          chip.className = `id-chip tok-${t.type}`;
+          chip.style.background = `var(--bg-${t.type})`;
+          chip.style.color = `var(--c-${t.type})`;
+          chip.title = t.display;
+          chip.textContent = t.id;
+          wrap.appendChild(chip);
+        });
+        return wrap;
+      }
+    </script>
+  </body>
+</html>
