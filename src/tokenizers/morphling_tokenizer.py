@@ -385,7 +385,7 @@ class MorphlingTokenizer(PreTrainedTokenizer):
 
     def _build_recovery_dictionary(self):
         self.recovery_dict = dict()
-        for orig_word in self.wordlist:
+        for orig_word in sorted(self.wordlist):
             tokens = self._tokenize_word(orig_word)
             detokenized_word = self._detokenize_word(tokens)
             if orig_word != detokenized_word:
