@@ -132,7 +132,7 @@ lusob	lusob	V;NFIN
 lusob	lumusob	V;PFV;AGFOC
 lusob	lumulusob	V;IPFV;AGFOC
 lusob	lulusob	V;AGFOC;LGSPEC1
-lusob	niluson	V;PFV;PFOC
+lusob	nilusob	V;PFV;PFOC
 lusob	nilulusob	V;IPFV;PFOC
 lusob	lulusubin	V;PFOC;LGSPEC1
 kamit	kamit	V;NFIN
@@ -195,13 +195,13 @@ umpisa	mag-uumpisa	V;AGFOC;LGSPEC1
 umpisa	inumpisahan	V;PFV;PFOC
 umpisa	inuumpisahan	V;IPFV;PFOC
 umpisa	uumpisahan	V;PFOC;LGSPEC1
-niwala	niwala	V;NFIN
-niwala	naniwala	V;PFV;AGFOC
-niwala	naniniwala	V;IPFV;AGFOC
-niwala	maniniwala	V;AGFOC;LGSPEC1
-niwala	pinaniwalaan	V;PFV;PFOC
-niwala	pinaniniwalaan	V;IPFV;PFOC
-niwala	paniniwalaan	V;PFOC;LGSPEC1
+tiwala	tiwala	V;NFIN
+tiwala	naniwala	V;PFV;AGFOC
+tiwala	naniniwala	V;IPFV;AGFOC
+tiwala	maniniwala	V;AGFOC;LGSPEC1
+tiwala	pinaniwalaan	V;PFV;PFOC
+tiwala	pinaniniwalaan	V;IPFV;PFOC
+tiwala	paniniwalaan	V;PFOC;LGSPEC1
 laki	laki	V;NFIN
 laki	lumaki	V;PFV;AGFOC
 laki	lumalaki	V;IPFV;AGFOC
@@ -249,9 +249,9 @@ yabang	yabang	V;NFIN
 yabang	nagyabang	V;PFV;AGFOC
 yabang	nagyayabang	V;IPFV;AGFOC
 yabang	magyayabang	V;AGFOC;LGSPEC1
-yabang	ipinag-yabang	V;PFV;PFOC
-yabang	ipinapag-yabang	V;IPFV;PFOC
-yabang	ipag-yayabang	V;PFOC;LGSPEC1
+yabang	ipinagyabang	V;PFV;PFOC
+yabang	ipinapagyabang	V;IPFV;PFOC
+yabang	ipagyayabang	V;PFOC;LGSPEC1
 sirá'	sirá'	V;NFIN
 sirá'	sumirá'	V;PFV;AGFOC
 sirá'	sumisirá'	V;IPFV;AGFOC
@@ -272,7 +272,7 @@ punit	nagpupunit pumupunit	V;IPFV;AGFOC
 punit	magpupunit pupunit	V;AGFOC;LGSPEC1
 punit	napunit pinunit	V;PFV;PFOC
 punit	napupunit pinupunit	V;IPFV;PFOC
-punit	mapupunitpu pupunitin	V;PFOC;LGSPEC1
+punit	mapupunit pupunitin	V;PFOC;LGSPEC1
 balí'	balí'	V;NFIN
 balí'	bumalí' nagbalí'	V;PFV;AGFOC
 balí'	bumabalí' nagbabalí'	V;IPFV;AGFOC
@@ -445,7 +445,7 @@ kipkip	kikipkipin	V;PFOC;LGSPEC1
 hawak	hawak	V;NFIN
 hawak	hinawakan	V;PFV;PFOC
 hawak	hinahawakan	V;IPFV;PFOC
-hawak	hahakawan	V;PFOC;LGSPEC1
+hawak	hahawakan	V;PFOC;LGSPEC1
 saló	saló	V;NFIN
 saló	sumaló	V;PFV;AGFOC
 saló	sumasaló	V;IPFV;AGFOC
@@ -543,7 +543,7 @@ punta	pinupuntahan	V;IPFV;PFOC
 punta	pupuntahan	V;PFOC;LGSPEC1
 balik	balik	V;NFIN
 balik	bumalik	V;PFV;AGFOC
-balik	bunabalik	V;IPFV;AGFOC
+balik	binabalik	V;IPFV;AGFOC
 balik	babalik	V;AGFOC;LGSPEC1
 balik	binalikan	V;PFV;PFOC
 balik	binabalikan	V;IPFV;PFOC
@@ -559,10 +559,10 @@ líto	malilíto	V;AGFOC;LGSPEC1
 líto	nilíto	V;PFV;PFOC
 líto	nililíto	V;IPFV;PFOC
 líto	lilituhin	V;PFOC;LGSPEC1
-patuloy	patuloy	V;NFIN
-patuloy	nagpatuloy	V;PFV;AGFOC
-patuloy	nagpapatuloy	V;IPFV;AGFOC
-patuloy	magpapatuloy	V;AGFOC;LGSPEC1
+tuloy	patuloy	V;NFIN
+tuloy	nagpatuloy	V;PFV;AGFOC
+tuloy	nagpapatuloy	V;IPFV;AGFOC
+tuloy	magpapatuloy	V;AGFOC;LGSPEC1
 tuloy	tuloy	V;NFIN
 tuloy	itinuloy	V;PFV;PFOC
 tuloy	itinutuloy	V;IPFV;PFOC
@@ -613,7 +613,7 @@ takip	takip	V;NFIN
 takip	nagtakip	V;PFV;AGFOC
 takip	nagtatakip	V;IPFV;AGFOC
 takip	magtatakip	V;AGFOC;LGSPEC1
-takip	pinagtapan	V;PFV;PFOC
+takip	pinagtakpan	V;PFV;PFOC
 takip	pinapagtakpan	V;IPFV;PFOC
 takip	papagtakpan	V;PFOC;LGSPEC1
 gawá'	gawá'	V;NFIN
@@ -662,13 +662,13 @@ hiwa'	maghihiwa'	V;AGFOC;LGSPEC1
 hiwa'	hiniwa'	V;PFV;PFOC
 hiwa'	hinihiwa'	V;IPFV;PFOC
 hiwa'	hihiwain'	V;PFOC;LGSPEC1
-tatad	tatad	V;NFIN
-tatad	nagtadtad	V;PFV;AGFOC
-tatad	nagtatadtad	V;IPFV;AGFOC
-tatad	magtatadtad	V;AGFOC;LGSPEC1
-tatad	tinadtad	V;PFV;PFOC
-tatad	tinatadtad	V;IPFV;PFOC
-tatad	tatadtarin	V;PFOC;LGSPEC1
+tadtad	tadtad	V;NFIN
+tadtad	nagtadtad	V;PFV;AGFOC
+tadtad	nagtatadtad	V;IPFV;AGFOC
+tadtad	magtatadtad	V;AGFOC;LGSPEC1
+tadtad	tinadtad	V;PFV;PFOC
+tadtad	tinatadtad	V;IPFV;PFOC
+tadtad	tatadtarin	V;PFOC;LGSPEC1
 gayat	gayat	V;NFIN
 gayat	naggayat	V;PFV;AGFOC
 gayat	naggagayat	V;IPFV;AGFOC
@@ -1063,7 +1063,7 @@ limot	nakakalimot	V;IPFV;AGFOC
 limot	makakalimot	V;AGFOC;LGSPEC1
 limot	nakalimutan	V;PFV;PFOC
 limot	nakakalimutan	V;IPFV;PFOC
-limot	malilituman	V;PFOC;LGSPEC1
+limot	malilimutan	V;PFOC;LGSPEC1
 tákot	tákot	V;NFIN
 tákot	nanákot	V;PFV;AGFOC
 tákot	nananákot	V;IPFV;AGFOC
@@ -1098,7 +1098,7 @@ regalo	nagregalo	V;PFV;AGFOC
 regalo	nagreregalo	V;IPFV;AGFOC
 regalo	magreregalo	V;AGFOC;LGSPEC1
 regalo	niregaluhan	V;PFV;PFOC
-regalo	nireregalugan	V;IPFV;PFOC
+regalo	nireregaluhan	V;IPFV;PFOC
 regalo	reregaluhan	V;PFOC;LGSPEC1
 bigay	bigay	V;NFIN
 bigay	nagbigay	V;PFV;AGFOC
@@ -1267,9 +1267,9 @@ dínig	dínig	V;NFIN
 dínig	nadinig narinig	V;PFV;AGFOC
 dínig	nadidinig naririnig	V;IPFV;AGFOC
 dínig	madidinig maririnig	V;AGFOC;LGSPEC1
-dínig	dininig dinirig	V;PFV;PFOC
+dínig	dininig dininig	V;PFV;PFOC
 dínig	dinidinig dinirinig	V;IPFV;PFOC
-dínig	didinggin diringinggin	V;PFOC;LGSPEC1
+dínig	didinggin diniringgin	V;PFOC;LGSPEC1
 kinig	kinig	V;NFIN
 kinig	nakinig	V;PFV;AGFOC
 kinig	nakikinig	V;IPFV;AGFOC
@@ -1520,9 +1520,9 @@ gibá'	ginibá'	V;PFV;PFOC
 gibá'	ginigibá'	V;IPFV;PFOC
 gibá'	gigibá'in	V;PFOC;LGSPEC1
 kilala	kilala	V;NFIN
-kilala	nakipag-kilala	V;PFV;AGFOC
-kilala	nakikipag-kilala	V;IPFV;AGFOC
-kilala	makikipag-kilala	V;AGFOC;LGSPEC1
+kilala	nakipagkilala	V;PFV;AGFOC
+kilala	nakikipagkilala	V;IPFV;AGFOC
+kilala	makikipagkilala	V;AGFOC;LGSPEC1
 kilala	kinilala	V;PFV;PFOC
 kilala	kinikilala	V;IPFV;PFOC
 kilala	kikilalanin	V;PFOC;LGSPEC1
@@ -1552,12 +1552,12 @@ lágay	nilágay	V;PFV;PFOC
 lágay	nilalágay	V;IPFV;PFOC
 lágay	ilalágay	V;PFOC;LGSPEC1
 sinungaling	sinungaling	V;NFIN
-sinungaling	nag-sinungaling	V;PFV;AGFOC
-sinungaling	nag-sisinungaling	V;IPFV;AGFOC
-sinungaling	mag-sisinungaling	V;AGFOC;LGSPEC1
-sinungaling	sinu-ngalingan	V;PFV;PFOC
-sinungaling	sinisinu-ngalingan	V;IPFV;PFOC
-sinungaling	sisinu-ngalingan	V;PFOC;LGSPEC1
+sinungaling	nagsinungaling	V;PFV;AGFOC
+sinungaling	nagsisinungaling	V;IPFV;AGFOC
+sinungaling	magsisinungaling	V;AGFOC;LGSPEC1
+sinungaling	sinungalingan	V;PFV;PFOC
+sinungaling	sinisinungalingan	V;IPFV;PFOC
+sinungaling	sisinungalingan	V;PFOC;LGSPEC1
 higa'	higa'	V;NFIN
 higa'	humiga'	V;PFV;AGFOC
 higa'	humihiga'	V;IPFV;AGFOC
@@ -1626,12 +1626,12 @@ gáwa'	gináwa'	V;PFV;PFOC
 gáwa'	ginagáwa'	V;IPFV;PFOC
 gáwa'	gagáwain gagáwin	V;PFOC;LGSPEC1
 palengke	palengke	V;NFIN
-palengke	na-malengke	V;PFV;AGFOC
-palengke	nama-malengke	V;IPFV;AGFOC
-palengke	mama-malengke	V;AGFOC;LGSPEC1
-palengke	pina-malengke	V;PFV;PFOC
-palengke	pina-pamalengke	V;IPFV;PFOC
-palengke	papa-malengkehin	V;PFOC;LGSPEC1
+palengke	namalengke	V;PFV;AGFOC
+palengke	namamalengke	V;IPFV;AGFOC
+palengke	mamamalengke	V;AGFOC;LGSPEC1
+palengke	pinamalengke	V;PFV;PFOC
+palengke	pinapamalengke	V;IPFV;PFOC
+palengke	papamalengkehin	V;PFOC;LGSPEC1
 kasal	kasal	V;NFIN
 kasal	nagpakasal	V;PFV;AGFOC
 kasal	nagpapakasal	V;IPFV;AGFOC
@@ -1689,14 +1689,14 @@ siesta	siesta	V;NFIN
 siesta	nagsiesta	V;PFV;AGFOC
 siesta	nagsisiesta	V;IPFV;AGFOC
 siesta	magsisiesta	V;AGFOC;LGSPEC1
-pahinga	pahinga	V;NFIN
-pahinga	nagpahinga	V;PFV;AGFOC
-pahinga	nagpapahinga	V;IPFV;AGFOC
-pahinga	magpapahinga	V;AGFOC;LGSPEC1
+hinga	pahinga	V;NFIN
+hinga	nagpahinga	V;PFV;AGFOC
+hinga	nagpapahinga	V;IPFV;AGFOC
+hinga	magpapahinga	V;AGFOC;LGSPEC1
 kailangan	kailangan	V;NFIN
-kailangan	nanga-ilangan	V;PFV;AGFOC
-kailangan	nanganga-ilangan	V;IPFV;AGFOC
-kailangan	manganga-ilangan	V;AGFOC;LGSPEC1
+kailangan	nangailangan	V;PFV;AGFOC
+kailangan	nangangailangan	V;IPFV;AGFOC
+kailangan	mangangailangan	V;AGFOC;LGSPEC1
 kailangan	kinailangan	V;PFV;PFOC
 kailangan	kinakailangan	V;IPFV;PFOC
 kailangan	kakailanganin	V;PFOC;LGSPEC1
@@ -1884,7 +1884,7 @@ tanim	tinanim	V;PFV;PFOC
 tanim	tinatanim	V;IPFV;PFOC
 tanim	itatanim	V;PFOC;LGSPEC1
 laró'	laró'	V;NFIN
-laró'	naglagró'	V;PFV;AGFOC
+laró'	naglaró'	V;PFV;AGFOC
 laró'	naglalaró'	V;IPFV;AGFOC
 laró'	maglalaró'	V;AGFOC;LGSPEC1
 laró'	nilaró'	V;PFV;PFOC
@@ -1951,7 +1951,7 @@ plantsa	plantsa	V;NFIN
 plantsa	nagplantsa	V;PFV;AGFOC
 plantsa	nagpaplantsa	V;IPFV;AGFOC
 plantsa	magplaplantsa	V;AGFOC;LGSPEC1
-plantsa	pinaltsa	V;PFV;PFOC
+plantsa	pinlantsa	V;PFV;PFOC
 plantsa	pinaplantsa	V;IPFV;PFOC
 plantsa	paplantsahin	V;PFOC;LGSPEC1
 ganda	ganda	V;NFIN
@@ -2090,13 +2090,13 @@ arúga'	nag-aarúga'	V;IPFV;AGFOC
 arúga'	mag-aarúga'	V;AGFOC;LGSPEC1
 arúga'	inarugaan	V;PFV;PFOC
 arúga'	inaarugaan	V;IPFV;PFOC
-arúga'	aaraguan	V;PFOC;LGSPEC1
+arúga'	aarugaan	V;PFOC;LGSPEC1
 alaga	alaga	V;NFIN
 alaga	nag-alaga	V;PFV;AGFOC
 alaga	nag-aalaga	V;IPFV;AGFOC
 alaga	mag-aalaga	V;AGFOC;LGSPEC1
 alaga	inalagaan	V;PFV;PFOC
-alaga	inaalagaaan	V;IPFV;PFOC
+alaga	inaalagaan	V;IPFV;PFOC
 alaga	aalagaan	V;PFOC;LGSPEC1
 laki	laki	V;NFIN
 laki	nagpalaki	V;PFV;AGFOC
@@ -2119,10 +2119,10 @@ abot	aabot	V;AGFOC;LGSPEC1
 abot	inabot	V;PFV;PFOC
 abot	inaabot	V;IPFV;PFOC
 abot	aabutin	V;PFOC;LGSPEC1
-dating rating	dating rating	V;NFIN
-dating rating	dumating narating	V;PFV;AGFOC
-dating rating	dumarating nararating	V;IPFV;AGFOC
-dating rating	darating mararating	V;AGFOC;LGSPEC1
+dating  dating V;NFIN
+dating  dumating narating	V;PFV;AGFOC
+dating  dumarating nararating	V;IPFV;AGFOC
+dating  darating mararating	V;AGFOC;LGSPEC1
 basa	basa	V;NFIN
 basa	nagbása bumasa	V;PFV;AGFOC
 basa	nagbabása bumabasa	V;IPFV;AGFOC
@@ -2150,7 +2150,7 @@ ayaw	inaayawan	V;IPFV;PFOC
 ayaw	aayawan	V;PFOC;LGSPEC1
 tanggi	tanggi	V;NFIN
 tanggi	tumanggi	V;PFV;AGFOC
-tanggi	tamatanggi	V;IPFV;AGFOC
+tanggi	tumatanggi	V;IPFV;AGFOC
 tanggi	tatanggi	V;AGFOC;LGSPEC1
 tanggi	tinanggihan	V;PFV;PFOC
 tanggi	tinatanggihan	V;IPFV;PFOC
@@ -2519,7 +2519,7 @@ kuha'	kukuhanin	V;PFOC;LGSPEC1
 kuha'	kuha'	V;NFIN
 kuha'	nanguha'	V;PFV;AGFOC
 kuha'	nangunguha'	V;IPFV;AGFOC
-kuha'	mangunguuha'	V;AGFOC;LGSPEC1
+kuha'	mangunguha'	V;AGFOC;LGSPEC1
 kuha'	kinunan	V;PFV;PFOC
 kuha'	kinukunan	V;IPFV;PFOC
 kuha'	kukunan	V;PFOC;LGSPEC1
@@ -2711,7 +2711,7 @@ dalaw	dinadalaw	V;IPFV;PFOC
 dalaw	dadalawin	V;PFOC;LGSPEC1
 bisita	bisita	V;NFIN
 bisita	bumisita	V;PFV;AGFOC
-bisita	bumibista	V;IPFV;AGFOC
+bisita	bumibisita	V;IPFV;AGFOC
 bisita	bibisita	V;AGFOC;LGSPEC1
 bisita	binisita	V;PFV;PFOC
 bisita	binibisita	V;IPFV;PFOC
@@ -2741,13 +2741,13 @@ gusto	gusto	V;NFIN
 gusto	ginusto	V;PFV;PFOC
 gusto	ginugusto	V;IPFV;PFOC
 gusto	gugustuhin	V;PFOC;LGSPEC1
-babala'	babala'	V;NFIN
-babala'	nagbabala'	V;PFV;AGFOC
-babala'	nagbababala'	V;IPFV;AGFOC
-babala'	magbababala'	V;AGFOC;LGSPEC1
-babala'	binalaan	V;PFV;PFOC
-babala'	binabalaan	V;IPFV;PFOC
-babala'	babalaan	V;PFOC;LGSPEC1
+bala'	babala'	V;NFIN
+bala'	nagbabala'	V;PFV;AGFOC
+bala'	nagbababala'	V;IPFV;AGFOC
+bala'	magbababala'	V;AGFOC;LGSPEC1
+bala'	binalaan	V;PFV;PFOC
+bala'	binabalaan	V;IPFV;PFOC
+bala'	babalaan	V;PFOC;LGSPEC1
 hugas	hugas	V;NFIN
 hugas	naghugas	V;PFV;AGFOC
 hugas	naghuhugas	V;IPFV;AGFOC
@@ -2815,13 +2815,13 @@ wagi'	magwawagi'	V;AGFOC;LGSPEC1
 wagi'	ipinagwagi'	V;PFV;PFOC
 wagi'	ipinapagwagi'	V;IPFV;PFOC
 wagi'	ipapagwagi'	V;PFOC;LGSPEC1
-panalo	panalo	V;NFIN
-panalo	nanalo	V;PFV;AGFOC
-panalo	nananalo	V;IPFV;AGFOC
-panalo	mananalo	V;AGFOC;LGSPEC1
-panalo	napanalunan	V;PFV;PFOC
-panalo	napapanalunan	V;IPFV;PFOC
-panalo	papanalunan	V;PFOC;LGSPEC1
+talo	panalo	V;NFIN
+talo	nanalo	V;PFV;AGFOC
+talo	nananalo	V;IPFV;AGFOC
+talo	mananalo	V;AGFOC;LGSPEC1
+talo	napanalunan	V;PFV;PFOC
+talo	napapanalunan	V;IPFV;PFOC
+talo	papanalunan	V;PFOC;LGSPEC1
 punas	punas	V;NFIN
 punas	nagpunas	V;PFV;AGFOC
 punas	nagpupunas	V;IPFV;AGFOC
@@ -2867,7 +2867,7 @@ alala	nag-aalala	V;IPFV;AGFOC
 alala	mag-aalala	V;AGFOC;LGSPEC1
 alala	inalala	V;PFV;PFOC
 alala	inaalala	V;IPFV;PFOC
-alala	aalahanin	V;PFOC;LGSPEC1
+alala	aalalahanin	V;PFOC;LGSPEC1
 samba	samba	V;NFIN
 samba	nagsamba	V;PFV;AGFOC
 samba	nagsasamba	V;IPFV;AGFOC
