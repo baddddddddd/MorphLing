@@ -1,4 +1,5 @@
 import math
+import unicodedata
 from pathlib import Path
 
 import hydra
@@ -10,6 +11,10 @@ tokenizer_registry = {
     "SentencePieceTokenizer": SentencePieceTokenizer,
     "UnigramTokenizer": UnigramTokenizer,
 }
+
+
+def normalize_to_ascii(text):
+    return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
 
 
 def calculate_root_preservation(tokenizer):
@@ -26,10 +31,16 @@ def calculate_root_preservation(tokenizer):
     SENTENCEPIECE_SPACE = "▁"
     for line in lines:
         root, *words, morphs = line.strip().split()
+        root = normalize_to_ascii(root).replace("'", "")
+
         for word in words:
+            word = normalize_to_ascii(word).replace("'", "")
+
             total_words += 1
-            tokens = tokenizer.tokenize(word)
-            tokens[0] = tokens[0].lstrip(SENTENCEPIECE_SPACE)
+            raw_tokens = tokenizer.tokenize(word)
+            tokens = [t.replace(SENTENCEPIECE_SPACE, "") for t in raw_tokens]
+            tokens = [t for t in tokens if t]
+
             if root in tokens:
                 fully_preserved_roots += 1
                 continue
@@ -52,7 +63,11 @@ def calculate_root_preservation(tokenizer):
                     partially_preserved_roots += 1
                     break
 
+            if not found_root:
+                print(f"{word} -> {root} -> {tokens}")
+
     preserved_roots = fully_preserved_roots + partially_preserved_roots
+    not_preserved_roots = total_words - preserved_roots
     print(f"Total words: {total_words}")
     print(
         f"Fully preserved roots: {fully_preserved_roots} ({fully_preserved_roots / total_words * 100:.2f}%)"
@@ -62,6 +77,9 @@ def calculate_root_preservation(tokenizer):
     )
     print(
         f"Total preserved roots: {preserved_roots} ({preserved_roots / total_words * 100:.2f}%)"
+    )
+    print(
+        f"Not preserved roots: {not_preserved_roots} ({not_preserved_roots / total_words * 100:.2f}%)"
     )
 
 
