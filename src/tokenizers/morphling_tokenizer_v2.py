@@ -38,9 +38,6 @@ class MorphlingTokenizerV2(PreTrainedTokenizer):
         self.INFIXES_FILE = module_root_dir / "resources" / "affixes" / "infixes.txt"
         self.WORDLIST_FILE = module_root_dir / "resources" / "wordlist.txt"
 
-        # NOTE: MAKE SURE TO UPDATE THIS AS YOU ADD MORE SPECIAL TOKENS
-        self.SPECIAL_TOKEN_COUNT = 6130
-
         # for O(1) identification if token is special
         self.SPECIAL_TOKEN_MARKER = "\u241f"
         self.SENTENCEPIECE_SPACE = "▁"
@@ -92,7 +89,7 @@ class MorphlingTokenizerV2(PreTrainedTokenizer):
             self._train_unigram(
                 dataset=dataset,
                 output_file=unigram_tokenizer_file,
-                vocab_size=vocab_size - self.SPECIAL_TOKEN_COUNT,
+                vocab_size=vocab_size,
                 unk_token=str(unk_token),
                 bos_token=str(bos_token),
                 eos_token=str(eos_token),
