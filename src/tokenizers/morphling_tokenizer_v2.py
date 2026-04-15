@@ -202,12 +202,9 @@ class MorphlingTokenizerV2(PreTrainedTokenizer):
             self.pua_to_morph[chr(pua_id)] = token
 
     def _tokenize(self, text: str) -> list:
-        words = self._split_to_words(text)
-        tokens = []
+        processed_text = self._preprocess(text)
 
-        for word in words:
-            word_tokens = self._tokenize_word(word)
-            tokens += word_tokens
+        tokens = self.unigram_tokenizer.tokenize(processed_text)
 
         bos_token = [self.bos_token] if self.add_bos_token else []
         eos_token = [self.eos_token] if self.add_eos_token else []
@@ -541,20 +538,50 @@ class MorphlingTokenizerV2(PreTrainedTokenizer):
 
         return token[0] == self.SENTENCEPIECE_SPACE
 
-    def _preprocess(self, example):
-        line = example["text"].strip()
-        if not line:
-            return {"text": ""}
+    def _preprocess(self, s: str) -> str:
+        if not s:
+            return ""
 
-        words = self._split_to_words(line)
+        words = self._split_to_words(s)
 
-        tokens = []
+        concat = []
+        no_space_next = False
+        opened_double_quotes = False
+
         for word in words:
             pretok = self._prepare_word(word)
-            tokens.append(pretok)
 
-        processed = " ".join(tokens)
-        return {"text": processed}
+            if len(word) == 1 and word in self.PUNCTUATION_CHARS:
+                if word == '"':
+                    if opened_double_quotes:
+                        concat.append(pretok)
+                    else:
+                        if concat:
+                            concat.append(" " + pretok)
+                        else:
+                            concat.append(pretok)
+                        no_space_next = True
+                    opened_double_quotes = not opened_double_quotes
+                elif word in self.PUNCTS_SPACE_AFTER:
+                    concat.append(pretok)
+                elif word in self.PUNCTS_SPACE_BEFORE:
+                    if concat:
+                        concat.append(" " + pretok)
+                    else:
+                        concat.append(pretok)
+                    no_space_next = True
+                elif word in self.PUNCTS_NO_SPACE:
+                    concat.append(pretok)
+                    no_space_next = True
+            else:
+                if no_space_next or not concat:
+                    concat.append(pretok)
+                    no_space_next = False
+                else:
+                    concat.append(" " + pretok)
+
+        processed = "".join(concat)
+        return processed
 
     def _train_unigram(
         self,
@@ -573,7 +600,7 @@ class MorphlingTokenizerV2(PreTrainedTokenizer):
         )
 
         dataset = dataset.map(
-            lambda example: self._preprocess(example),
+            lambda example: {"text": self._preprocess(example["text"])},
             remove_columns=dataset.column_names,
             num_proc=os.cpu_count(),
         )
