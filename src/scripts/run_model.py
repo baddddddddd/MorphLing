@@ -4,12 +4,16 @@ from huggingface_hub import login, HfApi
 from omegaconf import DictConfig, OmegaConf
 from transformers.tokenization_python import PreTrainedTokenizer
 from transformers.models.auto import AutoModelForCausalLM
-
-from ..tokenizers import MorphlingTokenizer, SentencePieceTokenizer, UnigramTokenizer
-
+from ..tokenizers import (
+    MorphlingTokenizer,
+    SentencePieceTokenizer,
+    UnigramTokenizer,
+    MorphlingTokenizerV2,
+)
 
 tokenizer_registry = {
     "MorphlingTokenizer": MorphlingTokenizer,
+    "MorphlingTokenizerV2": MorphlingTokenizerV2,
     "SentencePieceTokenizer": SentencePieceTokenizer,
     "UnigramTokenizer": UnigramTokenizer,
 }

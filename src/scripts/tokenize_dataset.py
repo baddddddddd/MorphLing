@@ -5,11 +5,16 @@ from datasets import load_dataset, DatasetDict
 from huggingface_hub import login
 from omegaconf import DictConfig, OmegaConf
 
-from ..tokenizers import MorphlingTokenizer, SentencePieceTokenizer, UnigramTokenizer
-
+from ..tokenizers import (
+    MorphlingTokenizer,
+    SentencePieceTokenizer,
+    UnigramTokenizer,
+    MorphlingTokenizerV2,
+)
 
 tokenizer_registry = {
     "MorphlingTokenizer": MorphlingTokenizer,
+    "MorphlingTokenizerV2": MorphlingTokenizerV2,
     "SentencePieceTokenizer": SentencePieceTokenizer,
     "UnigramTokenizer": UnigramTokenizer,
 }

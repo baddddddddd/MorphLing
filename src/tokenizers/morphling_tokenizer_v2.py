@@ -13,7 +13,7 @@ from .sentencepiece_tokenizer import SentencePieceTokenizer
 from ..utils import LFUCache
 
 
-class MorphlingTokenizer(PreTrainedTokenizer):
+class MorphlingTokenizerV2(PreTrainedTokenizer):
     def __init__(
         self,
         bpe_tokenizer_file: str,
@@ -39,7 +39,7 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         self.WORDLIST_FILE = module_root_dir / "resources" / "wordlist.txt"
 
         # NOTE: MAKE SURE TO UPDATE THIS AS YOU ADD MORE SPECIAL TOKENS
-        self.SPECIAL_TOKEN_COUNT = 126
+        self.SPECIAL_TOKEN_COUNT = 6130
 
         # keep newlines and split on space
         # keep punctuations
@@ -154,28 +154,43 @@ class MorphlingTokenizer(PreTrainedTokenizer):
         self.vocab = dict(self.bpe_tokenizer.get_vocab())
 
         # prefixes
+        prefixes = set()
         with open(self.PREFIXES_FILE, "r") as f:
             lines = f.readlines()
             for line in lines:
                 prefix = line.strip()
-                prefix_token = prefix + self.PREFIX_TAG
-                self.vocab[prefix_token] = len(self.vocab)
+                if prefix:
+                    prefixes.add(prefix)
+
+        for prefix in prefixes:
+            prefix_token = prefix + self.PREFIX_TAG
+            self.vocab[prefix_token] = len(self.vocab)
 
         # suffixes
+        suffixes = set()
         with open(self.SUFFIXES_FILE, "r") as f:
             lines = f.readlines()
             for line in lines:
                 suffix = line.strip()
-                suffix_token = suffix + self.SUFFIX_TAG
-                self.vocab[suffix_token] = len(self.vocab)
+                if suffix:
+                    suffixes.add(suffix)
+
+        for suffix in suffixes:
+            suffix_token = suffix + self.SUFFIX_TAG
+            self.vocab[suffix_token] = len(self.vocab)
 
         # infixes
+        infixes = set()
         with open(self.INFIXES_FILE, "r") as f:
             lines = f.readlines()
             for line in lines:
                 infix = line.strip()
-                infix_token = infix + self.INFIX_TAG
-                self.vocab[infix_token] = len(self.vocab)
+                if infix:
+                    infixes.add(infix)
+
+        for infix in infixes:
+            infix_token = infix + self.INFIX_TAG
+            self.vocab[infix_token] = len(self.vocab)
 
         # full redup
         self.vocab[self.REPEAT_TAG] = len(self.vocab)
@@ -185,6 +200,24 @@ class MorphlingTokenizer(PreTrainedTokenizer):
 
         # capital
         self.vocab[self.CAPITAL_TAG] = len(self.vocab)
+
+        inf_suf_combo = []
+        inf_pre_combo = []
+        for inf in infixes:
+            for suf in suffixes:
+                merged_token = f"{inf}{self.INFIX_TAG}{suf}{self.SUFFIX_TAG}"
+                inf_suf_combo.append(merged_token)
+                self.vocab[merged_token] = len(self.vocab)
+
+            for pre in prefixes:
+                merged_token = f"{inf}{self.INFIX_TAG}{pre}{self.PREFIX_TAG}"
+                inf_pre_combo.append(merged_token)
+                self.vocab[merged_token] = len(self.vocab)
+
+        for inf_pre in inf_pre_combo:
+            for suf in suffixes:
+                merged_token = f"{inf_pre}{suf}{self.SUFFIX_TAG}"
+                self.vocab[merged_token] = len(self.vocab)
 
     def _tokenize(self, text: str) -> list:
         words = self._split_to_words(text)
@@ -285,6 +318,8 @@ class MorphlingTokenizer(PreTrainedTokenizer):
             if root in self.wordlist:
                 self.stem_memo.setdefault(word_key, stem)
 
+                affix_tokens = []
+
                 if stem.dup:
                     special_tokens.append(self.REPEAT_TAG)
 
@@ -292,26 +327,31 @@ class MorphlingTokenizer(PreTrainedTokenizer):
                     special_tokens.append(self.REDUP_TAG)
 
                 if stem.inf:
-                    special_tokens.append(stem.inf + self.INFIX_TAG)
+                    affix_tokens.append(stem.inf + self.INFIX_TAG)
 
                 if stem.pre:
-                    special_tokens.append(stem.pre + self.PREFIX_TAG)
+                    affix_tokens.append(stem.pre + self.PREFIX_TAG)
 
                 # NOTE: phoneme change, assimilation, vowel loss, and metathesis doesn't change meaning so its ok for now
                 if stem.suf:
-                    special_tokens.append(stem.suf + self.SUFFIX_TAG)
+                    affix_tokens.append(stem.suf + self.SUFFIX_TAG)
 
-                if stem.contraction:
-                    special_tokens.append(stem.contraction + self.SUFFIX_TAG)
+                elif stem.contraction:
+                    affix_tokens.append(stem.contraction + self.SUFFIX_TAG)
 
                 if is_capital:
                     special_tokens.append(self.CAPITAL_TAG)
+
+                affix_tokens = "".join(affix_tokens)
+                if affix_tokens:
+                    special_tokens.insert(0, affix_tokens)
             else:
                 # either a proper noun or non-tagalog word
                 self.skip_stem_cache.access(word_key)
                 root = word
 
         # TODO: perform SentencePiece BPE on root word
+
         bpe_tokens = self.bpe_tokenizer.tokenize(root)
         tokens = bpe_tokens + special_tokens
         return tokens

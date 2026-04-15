@@ -12,7 +12,19 @@ from transformers.models.llama import LlamaConfig, LlamaForCausalLM
 from transformers.trainer import Trainer
 from transformers.training_args import TrainingArguments
 
-from ..tokenizers import MorphlingTokenizer, SentencePieceTokenizer, UnigramTokenizer
+from ..tokenizers import (
+    MorphlingTokenizer,
+    SentencePieceTokenizer,
+    UnigramTokenizer,
+    MorphlingTokenizerV2,
+)
+
+tokenizer_registry = {
+    "MorphlingTokenizer": MorphlingTokenizer,
+    "MorphlingTokenizerV2": MorphlingTokenizerV2,
+    "SentencePieceTokenizer": SentencePieceTokenizer,
+    "UnigramTokenizer": UnigramTokenizer,
+}
 
 
 def calculate_intermediate_size(hidden_size: int) -> int:
@@ -31,13 +43,6 @@ def calculate_num_hidden_layers(hidden_size: int) -> int:
 
 def calculate_num_attention_heads(hidden_size: int) -> int:
     return math.ceil(hidden_size / 64)
-
-
-tokenizer_registry = {
-    "MorphlingTokenizer": MorphlingTokenizer,
-    "SentencePieceTokenizer": SentencePieceTokenizer,
-    "UnigramTokenizer": UnigramTokenizer,
-}
 
 
 @hydra.main(version_base="1.3", config_path="../conf", config_name="config")
