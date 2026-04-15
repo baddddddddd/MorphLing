@@ -5,18 +5,18 @@ from pathlib import Path
 
 from datasets import concatenate_datasets, Dataset
 from tglstemmer import stemmer
-from tokenizers import SentencePieceBPETokenizer
+from tokenizers import SentencePieceUnigramTokenizer
 from tokenizers.normalizers import Sequence, NFKC, StripAccents
 from transformers.tokenization_python import PreTrainedTokenizer
 
-from .sentencepiece_tokenizer import SentencePieceTokenizer
+from .unigram_tokenizer import UnigramTokenizer
 from ..utils import LFUCache
 
 
 class MorphlingTokenizerV2(PreTrainedTokenizer):
     def __init__(
         self,
-        bpe_tokenizer_file: str,
+        unigram_tokenizer_file: str,
         dataset=None,
         vocab: str | dict | list | None = None,
         unk_token="<unk>",
@@ -40,43 +40,6 @@ class MorphlingTokenizerV2(PreTrainedTokenizer):
 
         # NOTE: MAKE SURE TO UPDATE THIS AS YOU ADD MORE SPECIAL TOKENS
         self.SPECIAL_TOKEN_COUNT = 6130
-
-        # keep newlines and split on space
-        # keep punctuations
-        # handle words like araw-araw, 'Yon, and di'ba
-        self.WORD_SPLIT_PATTERN = r"[\w']+(?:-\w+)*|[^\w\s]|\n"
-        self.word_split_regex = re.compile(self.WORD_SPLIT_PATTERN, re.UNICODE)
-        self.normalizer = Sequence([NFKC(), StripAccents()])
-
-        # caches
-        self.stem_memo = {}
-        self.skip_stem_cache = LFUCache(capacity=100000)
-
-        self._load_wordlist()
-
-        # train on corpus_file if tokenizer_file doesn't exist yet
-        if not os.path.exists(bpe_tokenizer_file):
-            if dataset is None:
-                raise Exception("dataset must be provided for corpus training")
-
-            self._train_bpe(
-                dataset=dataset,
-                output_file=bpe_tokenizer_file,
-                vocab_size=vocab_size - self.SPECIAL_TOKEN_COUNT,
-                unk_token=str(unk_token),
-                bos_token=str(bos_token),
-                eos_token=str(eos_token),
-                min_frequency=min_frequency,
-            )
-
-        self.bpe_tokenizer = SentencePieceTokenizer(
-            tokenizer_file=bpe_tokenizer_file,
-            unk_token=str(unk_token),
-            bos_token=str(bos_token),
-            eos_token=str(eos_token),
-            add_bos_token=False,
-            add_eos_token=False,
-        )
 
         # for O(1) identification if token is special
         self.SPECIAL_TOKEN_MARKER = "\u241f"
@@ -107,13 +70,47 @@ class MorphlingTokenizerV2(PreTrainedTokenizer):
 
         self.VALID_CONTRACTIONS = set(["'y", "'t"])
 
-        self.vocab = vocab
-        if self.vocab is None:
-            self._setup_vocab(
+        # keep newlines and split on space
+        # keep punctuations
+        # handle words like araw-araw, 'Yon, and di'ba
+        self.WORD_SPLIT_PATTERN = r"[\w']+(?:-\w+)*|[^\w\s]|\n"
+        self.word_split_regex = re.compile(self.WORD_SPLIT_PATTERN, re.UNICODE)
+        self.normalizer = Sequence([NFKC(), StripAccents()])
+
+        # caches
+        self.stem_memo = {}
+        self.skip_stem_cache = LFUCache(capacity=100000)
+
+        self._load_wordlist()
+        self._setup_morph_tokens()
+
+        # train on corpus_file if tokenizer_file doesn't exist yet
+        if not os.path.exists(unigram_tokenizer_file):
+            if dataset is None:
+                raise Exception("dataset must be provided for corpus training")
+
+            self._train_unigram(
+                dataset=dataset,
+                output_file=unigram_tokenizer_file,
+                vocab_size=vocab_size - self.SPECIAL_TOKEN_COUNT,
                 unk_token=str(unk_token),
                 bos_token=str(bos_token),
                 eos_token=str(eos_token),
+                min_frequency=min_frequency,
             )
+
+        self.unigram_tokenizer = UnigramTokenizer(
+            tokenizer_file=unigram_tokenizer_file,
+            unk_token=str(unk_token),
+            bos_token=str(bos_token),
+            eos_token=str(eos_token),
+            add_bos_token=False,
+            add_eos_token=False,
+        )
+
+        self.vocab = vocab
+        if self.vocab is None:
+            self.vocab = dict(self.unigram_tokenizer.get_vocab())
 
         self.ids_to_tokens = {v: k for k, v in self.vocab.items()}
 
@@ -145,39 +142,17 @@ class MorphlingTokenizerV2(PreTrainedTokenizer):
                 if line:
                     self.wordlist.add(line)
 
-    def _setup_vocab(
-        self,
-        unk_token,
-        bos_token,
-        eos_token,
-    ):
-        self.vocab = dict(self.bpe_tokenizer.get_vocab())
+    def _setup_morph_tokens(self):
+        self.morph_tokens = []
 
-        # prefixes
-        prefixes = set()
-        with open(self.PREFIXES_FILE, "r") as f:
-            lines = f.readlines()
-            for line in lines:
-                prefix = line.strip()
-                if prefix:
-                    prefixes.add(prefix)
+        # capital
+        self.morph_tokens.append(self.CAPITAL_TAG)
 
-        for prefix in prefixes:
-            prefix_token = prefix + self.PREFIX_TAG
-            self.vocab[prefix_token] = len(self.vocab)
+        # partial redup
+        self.morph_tokens.append(self.REDUP_TAG)
 
-        # suffixes
-        suffixes = set()
-        with open(self.SUFFIXES_FILE, "r") as f:
-            lines = f.readlines()
-            for line in lines:
-                suffix = line.strip()
-                if suffix:
-                    suffixes.add(suffix)
-
-        for suffix in suffixes:
-            suffix_token = suffix + self.SUFFIX_TAG
-            self.vocab[suffix_token] = len(self.vocab)
+        # full redup
+        self.morph_tokens.append(self.REPEAT_TAG)
 
         # infixes
         infixes = set()
@@ -188,36 +163,43 @@ class MorphlingTokenizerV2(PreTrainedTokenizer):
                 if infix:
                     infixes.add(infix)
 
-        for infix in infixes:
+        for infix in sorted(infixes):
             infix_token = infix + self.INFIX_TAG
-            self.vocab[infix_token] = len(self.vocab)
+            self.morph_tokens.append(infix_token)
 
-        # full redup
-        self.vocab[self.REPEAT_TAG] = len(self.vocab)
+        # suffixes
+        suffixes = set()
+        with open(self.SUFFIXES_FILE, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                suffix = line.strip()
+                if suffix:
+                    suffixes.add(suffix)
 
-        # partial redup
-        self.vocab[self.REDUP_TAG] = len(self.vocab)
+        for suffix in sorted(suffixes):
+            suffix_token = suffix + self.SUFFIX_TAG
+            self.morph_tokens.append(suffix_token)
 
-        # capital
-        self.vocab[self.CAPITAL_TAG] = len(self.vocab)
+        # prefixes
+        prefixes = set()
+        with open(self.PREFIXES_FILE, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                prefix = line.strip()
+                if prefix:
+                    prefixes.add(prefix)
 
-        inf_suf_combo = []
-        inf_pre_combo = []
-        for inf in infixes:
-            for suf in suffixes:
-                merged_token = f"{inf}{self.INFIX_TAG}{suf}{self.SUFFIX_TAG}"
-                inf_suf_combo.append(merged_token)
-                self.vocab[merged_token] = len(self.vocab)
+        for prefix in sorted(prefixes):
+            prefix_token = prefix + self.PREFIX_TAG
+            self.morph_tokens.append(prefix_token)
 
-            for pre in prefixes:
-                merged_token = f"{inf}{self.INFIX_TAG}{pre}{self.PREFIX_TAG}"
-                inf_pre_combo.append(merged_token)
-                self.vocab[merged_token] = len(self.vocab)
-
-        for inf_pre in inf_pre_combo:
-            for suf in suffixes:
-                merged_token = f"{inf_pre}{suf}{self.SUFFIX_TAG}"
-                self.vocab[merged_token] = len(self.vocab)
+        self.morph_to_pua = {}
+        self.pua_to_morph = {}
+        BASE_PUA = 0xE000
+        for i, token in enumerate(self.morph_tokens):
+            pua_id = BASE_PUA + i
+            self.morph_to_pua[token] = chr(pua_id)
+            self.pua_to_morph[chr(pua_id)] = token
 
     def _tokenize(self, text: str) -> list:
         words = self._split_to_words(text)
@@ -294,67 +276,123 @@ class MorphlingTokenizerV2(PreTrainedTokenizer):
     def vocab_size(self):
         return len(self.vocab)
 
-    def _tokenize_word(self, word: str) -> list:
-        if len(word) == 1:
-            return [word]
+    def _tokenize_word(self, word: str) -> list[str]:
+        word = self._prepare_word(word)
+        tokens = self.unigram_tokenizer.tokenize(word)
+        return tokens
 
+    def _prepare_word(self, word: str) -> str:
+        transformed = self._analyze_word(word)
+        converted = self._assign_pua(transformed)
+        stringified = "".join(converted)
+        return stringified
+
+    def _assign_pua(self, tokens: list[str]) -> list:
+        converted = []
+        for tok in tokens:
+            if not self._is_special_token(tok):
+                converted.append(tok)
+            else:
+                converted.append(self.morph_to_pua[tok])
+
+        return converted
+
+    def _deconstruct_token(self, token: str) -> list[str]:
+        root = ""
+        morph_tokens = []
+        for c in token:
+            if c in self.pua_to_morph:
+                morph_tokens.append(self.pua_to_morph[c])
+            else:
+                root += c
+
+        return [root] + morph_tokens
+
+    def _analyze_word(self, word: str) -> list[str]:
         # NOTE: capitalization check, not robust but fast
         is_capital = word[0].isupper() and word[-1].islower()
 
-        # memoize because stemming is expensive
-        word_key = word.lower()
-        root = word
-        special_tokens = []
+        stem = stemmer.get_stem(word)
+        transformed = []
 
-        if not self.skip_stem_cache.contains(word_key):
-            if word_key in self.stem_memo:
-                stem = self.stem_memo[word_key]
-            else:
-                stem = stemmer.get_stem(word)
+        transformed.append(stem.word)
 
-            root = str(stem)
-            # print(stem.__dict__)
+        if stem.suf:
+            transformed.append(stem.suf + self.SUFFIX_TAG)
+        elif stem.contraction:
+            transformed.append(stem.contraction + self.SUFFIX_TAG)
 
-            if root in self.wordlist:
-                self.stem_memo.setdefault(word_key, stem)
+        if stem.pre:
+            transformed.append(stem.pre + self.PREFIX_TAG)
 
-                affix_tokens = []
+        if stem.inf:
+            transformed.append(stem.inf + self.INFIX_TAG)
 
-                if stem.dup:
-                    special_tokens.append(self.REPEAT_TAG)
+        if stem.dup:
+            transformed.append(self.REPEAT_TAG)
 
-                if stem.rep:
-                    special_tokens.append(self.REDUP_TAG)
+        if stem.rep:
+            transformed.append(self.REDUP_TAG)
 
-                if stem.inf:
-                    affix_tokens.append(stem.inf + self.INFIX_TAG)
+        if is_capital:
+            transformed.append(self.CAPITAL_TAG)
 
-                if stem.pre:
-                    affix_tokens.append(stem.pre + self.PREFIX_TAG)
+        return transformed
 
-                # NOTE: phoneme change, assimilation, vowel loss, and metathesis doesn't change meaning so its ok for now
-                if stem.suf:
-                    affix_tokens.append(stem.suf + self.SUFFIX_TAG)
+        # # memoize because stemming is expensive
+        # word_key = word.lower()
+        # root = word
+        # special_tokens = []
 
-                elif stem.contraction:
-                    affix_tokens.append(stem.contraction + self.SUFFIX_TAG)
+        # if not self.skip_stem_cache.contains(word_key):
+        #     if word_key in self.stem_memo:
+        #         stem = self.stem_memo[word_key]
+        #     else:
+        #         stem = stemmer.get_stem(word)
 
-                if is_capital:
-                    special_tokens.append(self.CAPITAL_TAG)
+        #     root = str(stem)
+        #     # print(stem.__dict__)
 
-                affix_tokens = "".join(affix_tokens)
-                if affix_tokens:
-                    special_tokens.insert(0, affix_tokens)
-            else:
-                # either a proper noun or non-tagalog word
-                self.skip_stem_cache.access(word_key)
-                root = word
+        #     if root in self.wordlist:
+        #         self.stem_memo.setdefault(word_key, stem)
 
-        # TODO: perform SentencePiece BPE on root word
+        #         affix_tokens = []
 
-        bpe_tokens = self.bpe_tokenizer.tokenize(root)
-        tokens = bpe_tokens + special_tokens
-        return tokens
+        #         if stem.dup:
+        #             special_tokens.append(self.REPEAT_TAG)
+
+        #         if stem.rep:
+        #             special_tokens.append(self.REDUP_TAG)
+
+        #         if stem.inf:
+        #             affix_tokens.append(stem.inf + self.INFIX_TAG)
+
+        #         if stem.pre:
+        #             affix_tokens.append(stem.pre + self.PREFIX_TAG)
+
+        #         # NOTE: phoneme change, assimilation, vowel loss, and metathesis doesn't change meaning so its ok for now
+        #         if stem.suf:
+        #             affix_tokens.append(stem.suf + self.SUFFIX_TAG)
+
+        #         elif stem.contraction:
+        #             affix_tokens.append(stem.contraction + self.SUFFIX_TAG)
+
+        #         if is_capital:
+        #             special_tokens.append(self.CAPITAL_TAG)
+
+        #         affix_tokens = "".join(affix_tokens)
+        #         if affix_tokens:
+        #             special_tokens.insert(0, affix_tokens)
+        #     else:
+        #         # either a proper noun or non-tagalog word
+        #         self.skip_stem_cache.access(word_key)
+        #         root = word
+
+        # # TODO: perform SentencePiece BPE on root word
+
+        # bpe_tokens = self.bpe_tokenizer.tokenize(root)
+        # tokens = bpe_tokens + special_tokens
+        # return tokens
 
     def _split_to_words(self, text: str) -> list:
         text = self.normalizer.normalize_str(text)
@@ -443,26 +481,20 @@ class MorphlingTokenizerV2(PreTrainedTokenizer):
         # TODO: SORT SPECIAL TOKENS FIRST THEN RECONSTRUCT SEQUENTIALLY
         # full redup -> partial redup -> infix -> suffix -> prefix
 
-        # recover original root word fragmented by BPE
-        root_tokens = []
-        i = 0
-        while i < len(word_tokens):
-            token = word_tokens[i]
-            if self._is_special_token(token):
-                break
+        transformed = self.unigram_tokenizer.convert_tokens_to_string(word_tokens)
+        deconstructed = self._deconstruct_token(transformed)
 
-            root_tokens.append(token)
-            i += 1
+        if not deconstructed:
+            return ""
 
-        stem = "".join(root_tokens).lstrip(self.SENTENCEPIECE_SPACE)
-
+        stem = deconstructed[0]
         if stem in self.SEQUENCE_TOKENS:
             return stem
 
+        morph_tokens = deconstructed[1:]
+
         is_capital = False
-        while i < len(word_tokens):
-            token = word_tokens[i]
-            i += 1
+        for token in morph_tokens:
             if token.endswith(self.REPEAT_TAG):
                 stem = self._reconstruct_full_reduplication(stem)
                 continue
@@ -518,29 +550,13 @@ class MorphlingTokenizerV2(PreTrainedTokenizer):
 
         tokens = []
         for word in words:
-            word_key = word.lower()
-            root = word
-
-            if not self.skip_stem_cache.contains(word_key):
-                if word_key in self.stem_memo:
-                    stem = self.stem_memo[word_key]
-                else:
-                    stem = stemmer.get_stem(word)
-
-                root = str(stem)
-
-                if root in self.wordlist:
-                    self.stem_memo.setdefault(word_key, stem)
-                else:
-                    self.skip_stem_cache.access(word_key)
-                    root = word
-
-            tokens.append(root)
+            pretok = self._prepare_word(word)
+            tokens.append(pretok)
 
         processed = " ".join(tokens)
         return {"text": processed}
 
-    def _train_bpe(
+    def _train_unigram(
         self,
         dataset,
         output_file: str,
@@ -566,17 +582,19 @@ class MorphlingTokenizerV2(PreTrainedTokenizer):
             for i in range(0, len(dataset), batch_size):
                 yield dataset[i : i + batch_size]["text"]
 
-        tokenizer = SentencePieceBPETokenizer()
-
         initial_alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ \t\n"
+        morph_alphabet = "".join(self.morph_to_pua.values())
 
+        initial_alphabet += morph_alphabet
+
+        tokenizer = SentencePieceUnigramTokenizer()
         tokenizer.train_from_iterator(
             batch_iterator(),
             vocab_size=vocab_size,
-            min_frequency=min_frequency,
             show_progress=True,
-            initial_alphabet=list(initial_alphabet),
             special_tokens=[unk_token, bos_token, eos_token],
+            unk_token=unk_token,
+            initial_alphabet=list(initial_alphabet),
         )
 
         tokenizer.save(output_file)
