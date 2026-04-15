@@ -30,8 +30,9 @@ def calculate_root_preservation(tokenizer):
     with open(unimorph_filepath, "r") as f:
         lines = f.readlines()
 
-    fully_preserved_roots = 0
-    partially_preserved_roots = 0
+    exact_aligned_roots = 0
+    over_segmented_roots = 0
+    under_segmented_roots = 0
     total_words = 0
 
     SENTENCEPIECE_SPACE = "▁"
@@ -52,11 +53,14 @@ def calculate_root_preservation(tokenizer):
             tokens = [t.replace(SENTENCEPIECE_SPACE, "") for t in raw_tokens]
             tokens = [t for t in tokens if t]
 
+            # exact alignment
             if root in tokens:
-                fully_preserved_roots += 1
+                exact_aligned_roots += 1
                 continue
 
             found_root = False
+
+            # over-segmentation
             for l in range(len(tokens)):
                 if not root.startswith(tokens[l]):
                     continue
@@ -71,26 +75,41 @@ def calculate_root_preservation(tokenizer):
                         break
 
                 if found_root:
-                    partially_preserved_roots += 1
+                    over_segmented_roots += 1
                     break
 
+            # under-segmentation
             if not found_root:
-                print(f"{word} -> {root} -> {tokens}")
+                for t in tokens:
+                    if root in t:
+                        under_segmented_roots += 1
+                        found_root = True
+                        break
 
-    preserved_roots = fully_preserved_roots + partially_preserved_roots
-    not_preserved_roots = total_words - preserved_roots
-    print(f"Total words: {total_words}")
+            # misaligned
+            if not found_root:
+                print(f"Boundary Violation: {word} -> {root} -> {tokens}")
+
+    recoverable_roots = (
+        exact_aligned_roots + over_segmented_roots + under_segmented_roots
+    )
+    misaligned = total_words - recoverable_roots
+
+    print(f"Total words evaluated: {total_words}")
     print(
-        f"Fully preserved roots: {fully_preserved_roots} ({fully_preserved_roots / total_words * 100:.2f}%)"
+        f"Exact Alignment: {exact_aligned_roots} ({exact_aligned_roots / total_words * 100:.2f}%)"
     )
     print(
-        f"Partially preserved roots: {partially_preserved_roots} ({partially_preserved_roots / total_words * 100:.2f}%)"
+        f"Over-segmentation: {over_segmented_roots} ({over_segmented_roots / total_words * 100:.2f}%)"
     )
     print(
-        f"Total preserved roots: {preserved_roots} ({preserved_roots / total_words * 100:.2f}%)"
+        f"Under-segmentation: {under_segmented_roots} ({under_segmented_roots / total_words * 100:.2f}%)"
     )
     print(
-        f"Not preserved roots: {not_preserved_roots} ({not_preserved_roots / total_words * 100:.2f}%)"
+        f"Total Recoverable Roots: {recoverable_roots} ({recoverable_roots / total_words * 100:.2f}%)"
+    )
+    print(
+        f"Misaligned Segmentation: {misaligned} ({misaligned / total_words * 100:.2f}%)"
     )
 
 
