@@ -9,10 +9,16 @@ from transformers.models.llama import LlamaForCausalLM
 from datasets import load_dataset
 from tqdm import tqdm
 
-from ..tokenizers import MorphlingTokenizer, SentencePieceTokenizer, UnigramTokenizer
+from ..tokenizers import (
+    MorphlingTokenizer,
+    SentencePieceTokenizer,
+    UnigramTokenizer,
+    MorphlingTokenizerV2,
+)
 
 tokenizer_registry = {
     "MorphlingTokenizer": MorphlingTokenizer,
+    "MorphlingTokenizerV2": MorphlingTokenizerV2,
     "SentencePieceTokenizer": SentencePieceTokenizer,
     "UnigramTokenizer": UnigramTokenizer,
 }

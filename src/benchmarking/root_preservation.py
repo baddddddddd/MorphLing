@@ -4,10 +4,16 @@ from pathlib import Path
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
-from ..tokenizers import MorphlingTokenizer, SentencePieceTokenizer, UnigramTokenizer
+from ..tokenizers import (
+    MorphlingTokenizer,
+    SentencePieceTokenizer,
+    UnigramTokenizer,
+    MorphlingTokenizerV2,
+)
 
 tokenizer_registry = {
     "MorphlingTokenizer": MorphlingTokenizer,
+    "MorphlingTokenizerV2": MorphlingTokenizerV2,
     "SentencePieceTokenizer": SentencePieceTokenizer,
     "UnigramTokenizer": UnigramTokenizer,
 }
@@ -29,12 +35,17 @@ def calculate_root_preservation(tokenizer):
     total_words = 0
 
     SENTENCEPIECE_SPACE = "▁"
+    seen = set()
     for line in lines:
         root, *words, morphs = line.strip().split()
         root = normalize_to_ascii(root).replace("'", "")
 
         for word in words:
             word = normalize_to_ascii(word).replace("'", "")
+            if word in seen:
+                continue
+
+            seen.add(word)
 
             total_words += 1
             raw_tokens = tokenizer.tokenize(word)
