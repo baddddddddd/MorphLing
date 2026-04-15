@@ -1503,7 +1503,7 @@ babakasyunan
 babala
 babalaan
 babali
-babali'in
+babaliin
 babalik
 babalikan
 babalutin
@@ -1516,7 +1516,7 @@ babasagin
 babasahan
 babasahin
 babati
-babati'in
+babatiin
 babaw
 babawan
 babayaran
@@ -6154,7 +6154,7 @@ gibay
 gibik
 gibikan
 gigi
-gigiba'in
+gigibain
 gigil
 giginto
 giha
@@ -6699,7 +6699,7 @@ hahanapin
 hahanda
 haharap
 haharapin
-hahati'in
+hahatiin
 hahawak
 hahawakan
 hain
@@ -7146,7 +7146,7 @@ hihigpitan
 hihikaban
 hihilahin
 hihindi
-hihindi'an
+hihindian
 hihinga
 hihingi
 hihintayin
@@ -7347,7 +7347,7 @@ hinihigaan
 hinihigpitan
 hinihikaban
 hinihila
-hinihindi'an
+hinihindian
 hinihingi
 hinihintay
 hinihintuan
@@ -7360,7 +7360,7 @@ hiniklat
 hiniksik
 hiniksikan
 hinila
-hinindi'an
+hinindian
 hininga
 hiningi
 hinintay
@@ -11367,7 +11367,7 @@ kamuhian
 kamukha
 kamulatan
 kamumo
-kamumuhi'an
+kamumuhian
 kamunduhan
 kamuning
 kamuntay
@@ -12549,7 +12549,7 @@ kinakain
 kinakalawang
 kinakamay
 kinakamayan
-kinakamuhi'an
+kinakamuhian
 kinakanta
 kinakapatid
 kinakasal
@@ -12568,7 +12568,7 @@ kinamatayan
 kinamay
 kinamayan
 kinamihasnan
-kinamuhi'an
+kinamuhian
 kinamulatan
 kinang
 kinanta
@@ -33933,7 +33933,7 @@ sinipi
 sinipilyo
 sinipulan
 sinira
-sinira'an
+siniraan
 sinisa
 sinisado
 sinisibak
@@ -33946,7 +33946,7 @@ sinisinungalingan
 sinisipilyo
 sinisipulan
 sinisira
-sinisira'an
+sinisiraan
 sink
 sinli
 sino
@@ -34119,8 +34119,8 @@ sisipilyuhin
 sisipol
 sisipulan
 sisira
-sisira'an
-sisira'in
+sisiraan
+sisirain
 sisirin
 sisiw
 sisiwa
@@ -34831,7 +34831,6 @@ susunungin
 susunurin
 susuot
 susuotan
-susuri'in
 susuriin
 susuutin
 susuway
@@ -35799,7 +35798,7 @@ tatanggi
 tatanggihan
 tatangnan
 tatango
-tatangu'an
+tatanguan
 tatanungin
 tatapahin
 tatapusin
@@ -36225,7 +36224,7 @@ tinangay
 tinanggal
 tinanggap
 tinanggihan
-tinangu'an
+tinanguan
 tinanim
 tinanong
 tinapa
@@ -36250,7 +36249,7 @@ tinatanan
 tinatanggal
 tinatanggap
 tinatanggihan
-tinatangu'an
+tinatanguan
 tinatanim
 tinatanong
 tinatanuran
