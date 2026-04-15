@@ -24,25 +24,16 @@ def calculate_dataset_fertility_rate(dataset, tokenizer, text_column="text"):
     total_dataset_tokens = 0
 
     for item in tqdm(dataset, desc="Evaluating Dataset Fertility"):
-        text = item[text_column]
+        text = item[text_column].strip()
 
-        if not text or not text.strip():
+        if not text:
             continue
 
         words = text.split()
         num_words = len(words)
 
-        if num_words == 0:
-            continue
-
-        inputs = tokenizer.tokenize(text)
-        if isinstance(inputs, dict) and "input_ids" in inputs:
-            total_tokens = len(inputs["input_ids"])
-        else:
-            total_tokens = len(inputs)
-
-        if total_tokens == 0:
-            continue
+        tokens = tokenizer.tokenize(text)
+        total_tokens = len(tokens)
 
         total_dataset_words += num_words
         total_dataset_tokens += total_tokens
@@ -56,7 +47,7 @@ def calculate_dataset_fertility_rate(dataset, tokenizer, text_column="text"):
     print("\n=== Dataset Evaluation Results ===")
     print(f"Total Words: {total_dataset_words}")
     print(f"Total Sequence Tokens: {total_dataset_tokens}")
-    print(f"Token Fertility Rate: {token_fertility_rate:.4f}")
+    print(f"Token Fertility Rate: {token_fertility_rate:.2f}")
 
     return token_fertility_rate
 
